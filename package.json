@@ -114,7 +114,7 @@
     "prop-types": "^15.6.2",
     "prop-types-extra": "^1.1.0",
     "react-overlays": "^0.8.3",
-    "uncontrollable": "^6.0.0",
+    "uncontrollable": "^7.2.1",
     "warning": "^4.0.2"
   },
   "resolutions": {
