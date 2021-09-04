@@ -12,10 +12,13 @@ export default function Resources(resources, accessors) {
     groupEvents(events) {
       const eventsByResource = new window.Map()
       events.forEach(event => {
-        const id = accessors.resource(event) || NONE
-        let resourceEvents = eventsByResource.get(id) || []
-        resourceEvents.push(event)
-        eventsByResource.set(id, resourceEvents)
+        const idOrIds = accessors.resource(event) || NONE
+        const ids = Array.isArray(idOrIds) ? idOrIds : [idOrIds]
+        ids.forEach(id => {
+          let resourceEvents = eventsByResource.get(id) || []
+          resourceEvents.push(event)
+          eventsByResource.set(id, resourceEvents)
+        })
       })
       return eventsByResource
     },

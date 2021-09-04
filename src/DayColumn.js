@@ -151,6 +151,7 @@ class DayColumn extends React.Component {
       components,
       step,
       timeslots,
+      resource,
     } = this.props
 
     const { slotMetrics } = this
@@ -187,10 +188,9 @@ class DayColumn extends React.Component {
           style={style}
           event={event}
           label={label}
-          key={'evt_' + idx}
+          key={`evt_${resource ? `${resource}_` : ''}${idx}`}
           getters={getters}
           isRtl={isRtl}
-          getters={getters}
           components={components}
           continuesEarlier={continuesEarlier}
           continuesLater={continuesLater}
