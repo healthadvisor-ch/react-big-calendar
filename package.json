@@ -57,8 +57,8 @@
     "bracketSpacing": true
   },
   "peerDependencies": {
-    "react": "^15.3.0 || ^16.0.0",
-    "react-dom": "^15.3.0 || ^16.0.0"
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0"
   },
   "devDependencies": {
     "@4c/rollout": "^1.2.0",
@@ -90,12 +90,12 @@
     "moment": "^2.22.2",
     "mt-changelog": "^0.6.1",
     "prettier": "^1.14.3",
-    "react": "^16.5.2",
+    "react": "^17.0.2",
     "react-bootstrap": "^0.32.4",
-    "react-dnd": "^2.1.4",
+    "react-dnd": "^2.6.0",
     "react-dnd-html5-mixed-backend": "git+https://github.com/greg-dev/react-dnd-html5-mixed-backend.git",
     "react-docgen": "^3.0.0-rc.1",
-    "react-dom": "^16.5.2",
+    "react-dom": "^17.0.2",
     "react-tackle-box": "^2.1.0",
     "rimraf": "^2.4.2",
     "webpack": "^4.19.1",
