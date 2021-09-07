@@ -196,6 +196,7 @@ class DayColumn extends React.Component {
           continuesLater={continuesLater}
           accessors={accessors}
           selected={isSelected(event, selected)}
+          resourceId={resource}
           onClick={e => this._select(event, e)}
           onDoubleClick={e => this._doubleClick(event, e)}
         />

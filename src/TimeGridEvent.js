@@ -20,6 +20,7 @@ class TimeGridEvent extends React.Component {
       getters,
       onClick,
       onDoubleClick,
+      resourceId,
       components: { event: Event, eventWrapper: EventWrapper },
     } = this.props
     let title = accessors.title(event)
@@ -28,7 +29,7 @@ class TimeGridEvent extends React.Component {
     let start = accessors.start(event)
     let icon = event.icon
 
-    let userProps = getters.eventProp(event, start, end, selected)
+    let userProps = getters.eventProp(event, start, end, selected, resourceId)
 
     let { height, top, width, xOffset } = style
     const inner = [
