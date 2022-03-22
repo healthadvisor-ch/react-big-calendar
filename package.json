@@ -104,18 +104,18 @@
     "webpack-dev-server": "^3.1.8"
   },
   "dependencies": {
-    "@babel/cli": "^7.1.0",
-    "classnames": "^2.2.6",
+    "@babel/runtime": "^7.17.8",
+    "classnames": "^2.3.1",
     "date-arithmetic": "^3.0.0",
     "dom-helpers": "^2.3.0 || ^3.0.0",
     "invariant": "^2.2.4",
-    "lodash": "^4.17.11",
-    "memoize-one": "^4.0.2",
-    "prop-types": "^15.6.2",
-    "prop-types-extra": "^1.1.0",
+    "lodash": "^4.17.21",
+    "memoize-one": "^6.0.0",
+    "prop-types": "^15.8.1",
+    "prop-types-extra": "^1.1.1",
     "react-overlays": "^0.8.3",
     "uncontrollable": "^7.2.1",
-    "warning": "^4.0.2"
+    "warning": "^4.0.3"
   },
   "resolutions": {
     "babel-core": "7.0.0-bridge.0"
