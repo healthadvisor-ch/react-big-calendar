@@ -3,7 +3,7 @@ import closest from 'dom-helpers/query/closest'
 import events from 'dom-helpers/events'
 
 function addEventListener(type, handler, target = document) {
-  events.on(target, type, handler, { passive: false, capture: true })
+  events.on(target, type, handler, { passive: false })
   return {
     remove() {
       events.off(target, type, handler)
