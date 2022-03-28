@@ -153,10 +153,11 @@ class MonthView extends React.Component {
     events = eventsForWeek(events, week[0], week[week.length - 1], accessors)
 
     events.sort((a, b) => sortEvents(a, b, accessors))
+    const key = `${week[0].toISOString().slice(0, 10)}-${weekIdx}`
 
     return (
       <DateContentRow
-        key={weekIdx}
+        key={key}
         ref={weekIdx === 0 ? 'slotRow' : undefined}
         container={this.getContainer}
         className="rbc-month-row"
