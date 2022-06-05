@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import { DragSource } from 'react-dnd'
-import { getEmptyImage } from 'react-dnd-html5-mixed-backend'
+import { getEmptyImage } from '@healthadvisor/react-dnd-html5-mixed-backend'
 import compose from './compose'
 
 class ResizableEvent extends React.Component {
