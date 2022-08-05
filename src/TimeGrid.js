@@ -80,7 +80,9 @@ export default class TimeGrid extends Component {
 
     this.applyScroll()
 
-    this.positionTimeIndicator()
+    setTimeout(() => {
+      this.positionTimeIndicator()
+    }, 100)
     this.triggerTimeIndicatorUpdate()
 
     window.addEventListener('resize', this.handleResize)
