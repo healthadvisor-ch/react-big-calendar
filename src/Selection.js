@@ -2,7 +2,11 @@ import contains from 'dom-helpers/query/contains'
 import closest from 'dom-helpers/query/closest'
 import events from 'dom-helpers/events'
 
-function addEventListener(type, handler, target = document) {
+function addEventListener(type, handler, target = undefined) {
+  if (target === undefined) {
+    target = document.querySelector('.rbc-calendar')
+  }
+
   events.on(target, type, handler, { passive: false })
   return {
     remove() {
@@ -218,44 +222,46 @@ class Selection {
       if (!collides) return
     }
 
-    let result = this.emit(
-      'beforeSelect',
-      (this._initialEventData = {
-        isTouch: /^touch/.test(e.type),
-        x: pageX,
-        y: pageY,
-        clientX,
-        clientY,
-      })
-    )
+    setTimeout(() => {
+      let result = this.emit(
+        'beforeSelect',
+        (this._initialEventData = {
+          isTouch: /^touch/.test(e.type),
+          x: pageX,
+          y: pageY,
+          clientX,
+          clientY,
+        })
+      )
 
-    if (result === false) return
+      if (result === false) return
 
-    switch (e.type) {
-      case 'mousedown':
-        this._onEndListener = addEventListener(
-          'mouseup',
-          this._handleTerminatingEvent
-        )
-        this._onMoveListener = addEventListener(
-          'mousemove',
-          this._handleMoveEvent
-        )
-        break
-      case 'touchstart':
-        this._handleMoveEvent(e)
-        this._onEndListener = addEventListener(
-          'touchend',
-          this._handleTerminatingEvent
-        )
-        this._onMoveListener = addEventListener(
-          'touchmove',
-          this._handleMoveEvent
-        )
-        break
-      default:
-        break
-    }
+      switch (e.type) {
+        case 'mousedown':
+          this._onEndListener = addEventListener(
+            'mouseup',
+            this._handleTerminatingEvent
+          )
+          this._onMoveListener = addEventListener(
+            'mousemove',
+            this._handleMoveEvent
+          )
+          break
+        case 'touchstart':
+          this._handleMoveEvent(e)
+          this._onEndListener = addEventListener(
+            'touchend',
+            this._handleTerminatingEvent
+          )
+          this._onMoveListener = addEventListener(
+            'touchmove',
+            this._handleMoveEvent
+          )
+          break
+        default:
+          break
+      }
+    }, 0)
   }
 
   _handleTerminatingEvent(e) {
@@ -359,8 +365,8 @@ class Selection {
     let { x, y, isTouch } = this._initialEventData
     return (
       !isTouch &&
-      (Math.abs(pageX - x) <= clickTolerance &&
-        Math.abs(pageY - y) <= clickTolerance)
+      Math.abs(pageX - x) <= clickTolerance &&
+        Math.abs(pageY - y) <= clickTolerance
     )
   }
 }
@@ -402,15 +408,17 @@ export function objectsCollide(nodeA, nodeB, tolerance = 0) {
     bottom: bBottom = bTop,
   } = getBoundsForNode(nodeB)
 
-  return !// 'a' bottom doesn't touch 'b' top
-  (
-    aBottom - tolerance < bTop ||
-    // 'a' top doesn't touch 'b' bottom
-    aTop + tolerance > bBottom ||
-    // 'a' right doesn't touch 'b' left
-    aRight - tolerance < bLeft ||
-    // 'a' left doesn't touch 'b' right
-    aLeft + tolerance > bRight
+  return !(
+    // 'a' bottom doesn't touch 'b' top
+    (
+      aBottom - tolerance < bTop ||
+      // 'a' top doesn't touch 'b' bottom
+      aTop + tolerance > bBottom ||
+      // 'a' right doesn't touch 'b' left
+      aRight - tolerance < bLeft ||
+      // 'a' left doesn't touch 'b' right
+      aLeft + tolerance > bRight
+    )
   )
 }
 
