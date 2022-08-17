@@ -1,16 +1,15 @@
 import contains from 'dom-helpers/query/contains'
 import closest from 'dom-helpers/query/closest'
-import events from 'dom-helpers/events'
 
-function addEventListener(type, handler, target = undefined) {
-  if (target === undefined) {
-    target = document.querySelector('.rbc-calendar')
-  }
+function addEventListener(type, handler, target = document) {
+  target.addEventListener(type, handler, { capture: true, passive: false })
 
-  events.on(target, type, handler, { passive: false })
   return {
     remove() {
-      events.off(target, type, handler)
+      target.removeEventListener(type, handler, {
+        capture: true,
+        passive: false,
+      })
     },
   }
 }
@@ -366,7 +365,7 @@ class Selection {
     return (
       !isTouch &&
       Math.abs(pageX - x) <= clickTolerance &&
-        Math.abs(pageY - y) <= clickTolerance
+      Math.abs(pageY - y) <= clickTolerance
     )
   }
 }
