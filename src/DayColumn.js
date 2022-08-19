@@ -102,6 +102,7 @@ class DayColumn extends React.Component {
         style={style}
         className={cn(
           className,
+          this.props.className,
           'rbc-day-slot',
           'rbc-time-column',
           isNow && 'rbc-now',
