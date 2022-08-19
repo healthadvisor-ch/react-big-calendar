@@ -1,6 +1,12 @@
 export const NONE = {}
 
 export default function Resources(resources, accessors) {
+  function getLength() {
+    if (!resources) return 0
+
+    return resources.length
+  }
+
   return {
     map(fn) {
       if (!resources) return [fn([NONE, null], 0)]
@@ -22,5 +28,6 @@ export default function Resources(resources, accessors) {
       })
       return eventsByResource
     },
+    length: getLength(),
   }
 }
