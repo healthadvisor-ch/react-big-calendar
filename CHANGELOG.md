@@ -1,3 +1,11 @@
+## v0.21.1 - Wed, 24 Aug 2022 09:04:36 GMT
+
+- fix missing current time-bar in agenda
+
+## v0.21.0 - Sun, 05 Jun 2022 11:57:12 GMT
+
+- First release under @healthadvisor organisation
+
 ## v0.19.2 - Wed, 27 Jun 2018 14:24:55 GMT
 
 ## v0.19.1 - Thu, 03 May 2018 15:22:43 GMT
