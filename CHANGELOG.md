@@ -1,3 +1,8 @@
+## v0.22.0 - Wed, 7 Sep 2022 08:40:00 GMT
+
+- Added support for multi therapist view
+  https://github.com/rspective/react-big-calendar/pull/9
+
 ## v0.21.2 - Wed, 25 Aug 2022 16:48:36 GMT
 
 - fix missing current time-bar in agenda
