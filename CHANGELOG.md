@@ -1,3 +1,7 @@
+## v0.22.1 - Fri, 30 Sep 2022 14:00:00 GMT
+
+- added missing key property in TimeGridHeader
+
 ## v0.22.0 - Wed, 7 Sep 2022 08:40:00 GMT
 
 - Added support for multi therapist view

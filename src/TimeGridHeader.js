@@ -216,7 +216,7 @@ class TimeGridHeader extends React.Component {
         </div>
         <div className="rbc-row rbc-row-resource">
           {resources.map(([id, resource], idx) => (
-            <div className="rbc-header">
+            <div className="rbc-header" key={id}>
               {resource && (
                 <ResourceHeaderComponent
                   index={idx}
