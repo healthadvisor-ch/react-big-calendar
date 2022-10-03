@@ -115,7 +115,7 @@ class TimeGridHeader extends React.Component {
         isAllDay
         rtl={rtl}
         getNow={getNow}
-        minRows={2}
+        minRows={1}
         range={range}
         events={eventsToDisplay}
         resourceId={resourceId}
@@ -150,7 +150,7 @@ class TimeGridHeader extends React.Component {
         isAllDay
         rtl={rtl}
         getNow={getNow}
-        minRows={2}
+        minRows={1}
         range={range}
         events={groupedEvents.get(resourceId) || []}
         resourceId={resource && resourceId}

@@ -1,3 +1,7 @@
+## v0.22.2 - Fri, 30 Sep 2022 14:00:00 GMT
+
+- hidden all event's container if it's unnecessary
+
 ## v0.22.1 - Fri, 30 Sep 2022 14:00:00 GMT
 
 - added missing key property in TimeGridHeader

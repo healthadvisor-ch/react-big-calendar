@@ -611,6 +611,9 @@ button.rbc-input::-moz-focus-inner {
   box-sizing: border-box;
   min-height: 20px;
 }
+.rbc-time-view .rbc-row.rbc-row-resource {
+  min-height: 0;
+}
 .rbc-time-header {
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -621,6 +624,9 @@ button.rbc-input::-moz-focus-inner {
   -webkit-flex-direction: row;
   -ms-flex-direction: row;
   flex-direction: row;
+  -webkit-align-items: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
 }
 .rbc-time-header.rbc-overflowing {
   border-right: 1px solid #ddd;
@@ -657,6 +663,11 @@ button.rbc-input::-moz-focus-inner {
   -webkit-flex-shrink: 0;
   -ms-flex-negative: 0;
   flex-shrink: 0;
+}
+.rbc-time-header-content > .rbc-time-header-cell + .rbc-row.rbc-row-resource {
+  -webkit-flex-basis: calc(100% - 20px);
+  -ms-flex-preferred-size: calc(100% - 20px);
+  flex-basis: calc(100% - 20px);
 }
 .rbc-time-content {
   display: -webkit-flex;
