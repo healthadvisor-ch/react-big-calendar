@@ -5,8 +5,9 @@
 1. increase version in package.json
 2. build project: `npm run build`
 3. add and commit your changes and updated package.json
-4. login to NPM (only for first time): `npm login`
-5. publish: `npm publish`
+4. add tag to git
+5. login to NPM (only for first time): `npm login`
+6. publish: `npm publish`
 
 An events calendar component built for React and made for modern browsers (read: IE10+) and uses flexbox over the classic tables-ception approach.
 

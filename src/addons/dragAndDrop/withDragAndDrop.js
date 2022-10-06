@@ -7,6 +7,7 @@ import EventWrapper from './EventWrapper'
 import EventContainerWrapper from './EventContainerWrapper'
 import WeekWrapper from './WeekWrapper'
 import { mergeComponents } from './common'
+import _ from 'lodash'
 
 /**
  * Creates a higher-order component (HOC) supporting drag & drop and optionally resizing
@@ -99,6 +100,12 @@ export default function withDragAndDrop(Calendar) {
       })
 
       this.state = {}
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+      return (
+        !_.isEqual(this.props, nextProps) || !_.isEqual(this.state, nextState)
+      )
     }
 
     getChildContext() {
