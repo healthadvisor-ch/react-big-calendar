@@ -2,11 +2,14 @@
 
 ## How to publish
 
-1. increase version in package.json
-2. build project: `npm run build`
-3. add and commit your changes and updated package.json
+1. build project: `npm run build`
+2. add and commit your changes and updated package.json
+3. increase version by:
+   `npm version [ major | minor | patch]` (this adds a git tag by own! :D)
 4. login to NPM (only for first time): `npm login`
 5. publish: `npm publish`
+
+### Base readme:
 
 An events calendar component built for React and made for modern browsers (read: IE10+) and uses flexbox over the classic tables-ception approach.
 

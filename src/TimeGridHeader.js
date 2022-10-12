@@ -203,38 +203,40 @@ class TimeGridHeader extends React.Component {
       components: { resourceHeader: ResourceHeaderComponent = ResourceHeader },
     } = this.props
 
-    return range.map((date, rangeIndex) => (
-      <div
-        className={cn(
-          'rbc-time-header-content',
-          resources.length > 1 && 'rbc-time-header-content-last-in-resource'
-        )}
-        key={rangeIndex}
-      >
-        <div className="rbc-row rbc-time-header-cell">
-          {this.renderHeaderSingleCell(date, rangeIndex)}
+    return range.map((date, rangeIndex) => {
+      const groupedEventsPerDay = resources.groupEvents(
+        this.getEventsForDay(events, date)
+      )
+      return (
+        <div
+          className={cn(
+            'rbc-time-header-content',
+            resources.length > 1 && 'rbc-time-header-content-last-in-resource'
+          )}
+          key={rangeIndex}
+        >
+          <div className="rbc-row rbc-time-header-cell">
+            {this.renderHeaderSingleCell(date, rangeIndex)}
+          </div>
+          <div className="rbc-row rbc-row-resource">
+            {resources.map(([id, resource], idx) => (
+              <div className="rbc-header" key={id}>
+                {resource && (
+                  <ResourceHeaderComponent
+                    index={idx}
+                    label={accessors.resourceTitle(resource)}
+                    resource={resource}
+                  />
+                )}
+                {this.getDateContentRow(groupedEventsPerDay, resource, id, [
+                  date,
+                ])}
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="rbc-row rbc-row-resource">
-          {resources.map(([id, resource], idx) => (
-            <div className="rbc-header" key={id}>
-              {resource && (
-                <ResourceHeaderComponent
-                  index={idx}
-                  label={accessors.resourceTitle(resource)}
-                  resource={resource}
-                />
-              )}
-              {this.getDateContentRow(
-                resources.groupEvents(this.getEventsForDay(events, date)),
-                resource,
-                id,
-                [date]
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    ))
+      )
+    })
   }
 
   renderGroupedByResource() {
