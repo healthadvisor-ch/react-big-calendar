@@ -1,3 +1,11 @@
+## v1.0.1 - Wed, 25 Jan 2023 14:30:00 GMT
+
+- added data props to DayColumn
+
+## v1.0.0 - Fri, 7 Oct 2022 10:40:00 GMT
+
+- releasing under @healthadvisor/react-big-calendar package
+
 ## v0.22.2 - Fri, 30 Sep 2022 14:00:00 GMT
 
 - hidden all event's container if it's unnecessary

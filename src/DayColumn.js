@@ -95,11 +95,16 @@ class DayColumn extends React.Component {
 
     let selectDates = { start: startDate, end: endDate }
 
-    const { className, style } = dayProp(max, resource)
+    const { data, className, style } = dayProp(max, resource)
+    const dataProps = Object.keys(data || {}).reduce(
+      (all, prop) => ({ ...all, [`data-${prop}`]: data[prop] }),
+      {}
+    )
 
     return (
       <div
         style={style}
+        {...dataProps}
         className={cn(
           className,
           this.props.className,
