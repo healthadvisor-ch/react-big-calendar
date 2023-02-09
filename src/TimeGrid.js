@@ -143,6 +143,7 @@ export default class TimeGrid extends Component {
   handleResize = () => {
     raf.cancel(this.rafHandle)
     this.rafHandle = raf(this.checkOverflow)
+    this.positionTimeIndicator()
   }
   componentWillUnmount() {
     window.removeEventListener('resize', this.handleResize)

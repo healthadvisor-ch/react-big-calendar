@@ -3,7 +3,7 @@
 ## How to publish
 
 1. build project: `npm run build`
-2. add and commit your changes and updated package.json
+2. add and commit your changes
 3. increase version by:
    `npm version [ major | minor | patch]` (this adds a git tag by own! :D)
 4. login to NPM (only for first time): `npm login`
