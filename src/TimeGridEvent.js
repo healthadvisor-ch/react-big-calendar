@@ -55,7 +55,6 @@ class TimeGridEvent extends React.Component {
     }
     let onTouchEnd = e => {
       if (e.pointerType === 'mouse') {
-        this.setState({ timestamp: 0 })
         return
       }
       let now = Date.now()
@@ -75,6 +74,7 @@ class TimeGridEvent extends React.Component {
               e.stopPropagation()
               e.preventDefault()
             }
+            this.setState({ timestamp: 0 })
           }}
           onPointerDown={onTouchStart}
           onPointerUp={onTouchEnd}
