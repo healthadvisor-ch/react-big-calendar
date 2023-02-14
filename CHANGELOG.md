@@ -1,3 +1,24 @@
+## v0.22.2 - Fri, 30 Sep 2022 14:00:00 GMT
+
+- hidden all event's container if it's unnecessary
+
+## v0.22.1 - Fri, 30 Sep 2022 14:00:00 GMT
+
+- added missing key property in TimeGridHeader
+
+## v0.22.0 - Wed, 7 Sep 2022 08:40:00 GMT
+
+- Added support for multi therapist view
+  https://github.com/rspective/react-big-calendar/pull/9
+
+## v0.21.2 - Wed, 25 Aug 2022 16:48:36 GMT
+
+- fix missing current time-bar in agenda
+
+## v0.21.0 - Sun, 05 Jun 2022 11:57:12 GMT
+
+- First release under @healthadvisor organisation
+
 ## v0.19.2 - Wed, 27 Jun 2018 14:24:55 GMT
 
 ## v0.19.1 - Thu, 03 May 2018 15:22:43 GMT

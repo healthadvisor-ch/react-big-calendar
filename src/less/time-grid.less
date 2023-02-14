@@ -45,6 +45,10 @@
   .rbc-row {
     box-sizing: border-box;
     min-height: 20px;
+
+    &.rbc-row-resource {
+      min-height: 0;
+    }
   }
 }
 
@@ -52,6 +56,7 @@
   display: flex;
   flex: 0 0 auto; // should not shrink below height
   flex-direction: row;
+  align-items: stretch;
 
   &.rbc-overflowing {
     border-right: 1px solid @cell-border;
@@ -94,6 +99,10 @@
   >.rbc-row.rbc-row-resource {
     border-bottom: 1px solid @cell-border;
     flex-shrink: 0;
+  }
+
+  >.rbc-time-header-cell + .rbc-row.rbc-row-resource {
+    flex-basis: ~"calc(100% - 20px)";
   }
 }
 

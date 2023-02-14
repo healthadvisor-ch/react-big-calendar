@@ -232,6 +232,13 @@ class Calendar extends React.Component {
     resourceTitleAccessor: accessor,
 
     /**
+     * determines how to group events in multi days and multi resources view. Pass top level of grouping
+     *
+     * @type {'date'|'resource'}
+     */
+    resourcesGroupBy: PropTypes.oneOf(['date', 'resource']),
+
+    /**
      * Determines the current date/time which is highlighted in the views.
      *
      * The value affects which day is shaded and which time is shown as
@@ -702,6 +709,11 @@ class Calendar extends React.Component {
       noEventsInRange: PropTypes.node,
       showMore: PropTypes.func,
     }),
+
+    /**
+     * Experimental mode of calculate width using size of timeGrid. Useful when horizontal scrollbar is used
+     */
+    useDynamicWidthOfTimeIndicator: PropTypes.bool,
   }
 
   static defaultProps = {
@@ -725,9 +737,11 @@ class Calendar extends React.Component {
 
     resourceIdAccessor: 'id',
     resourceTitleAccessor: 'title',
+    resourcesGroupBy: 'date',
 
     longPressThreshold: 250,
     getNow: () => new Date(),
+    useDynamicWidthOfTimeIndicator: false,
   }
 
   constructor(...args) {

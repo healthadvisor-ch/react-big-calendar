@@ -18,6 +18,7 @@ export default class TimeGrid extends Component {
   static propTypes = {
     events: PropTypes.array.isRequired,
     resources: PropTypes.array,
+    resourcesGroupBy: PropTypes.oneOf(['date', 'resource']).isRequired,
 
     step: PropTypes.number,
     timeslots: PropTypes.number,
@@ -49,6 +50,7 @@ export default class TimeGrid extends Component {
     onDoubleClickEvent: PropTypes.func,
     onDrillDown: PropTypes.func,
     getDrilldownView: PropTypes.func.isRequired,
+    useDynamicWidthOfTimeIndicator: PropTypes.bool,
   }
 
   static defaultProps = {
@@ -57,6 +59,7 @@ export default class TimeGrid extends Component {
     min: dates.startOf(new Date(), 'day'),
     max: dates.endOf(new Date(), 'day'),
     scrollToTime: dates.startOf(new Date(), 'day'),
+    useDynamicWidthOfTimeIndicator: false,
   }
 
   constructor(props) {
@@ -80,14 +83,16 @@ export default class TimeGrid extends Component {
 
     this.applyScroll()
 
-    this.positionTimeIndicator()
+    setTimeout(() => {
+      this.positionTimeIndicator()
+    }, 100)
     this.triggerTimeIndicatorUpdate()
 
     window.addEventListener('resize', this.handleResize)
   }
 
   positionTimeIndicator() {
-    const { rtl, min, max, getNow } = this.props
+    const { rtl, min, max, getNow, useDynamicWidthOfTimeIndicator } = this.props
     const current = getNow()
 
     const secondsGrid = dates.diff(max, min, 'seconds')
@@ -98,11 +103,21 @@ export default class TimeGrid extends Component {
     const timeGutter = this.gutter
 
     if (timeGutter && current >= min && current <= max) {
+      if (useDynamicWidthOfTimeIndicator) {
+        // reset width in order to proper calculation when timeGrid is smaller than before the change
+        timeIndicator.style.width = `calc(100% - ${timeGutter.parentElement.scrollWidth}px)`
+      }
+
       const pixelHeight = timeGutter.offsetHeight
       const offset = Math.floor(factor * pixelHeight)
 
       timeIndicator.style.display = 'block'
-      timeIndicator.style[rtl ? 'left' : 'right'] = 0
+      if (useDynamicWidthOfTimeIndicator) {
+        timeIndicator.style.width =
+          timeGutter.parentElement.scrollWidth - timeGutter.offsetWidth + 'px'
+      } else {
+        timeIndicator.style[rtl ? 'left' : 'right'] = 0
+      }
       timeIndicator.style[rtl ? 'right' : 'left'] =
         timeGutter.offsetWidth + 'px'
       timeIndicator.style.top = offset + 'px'
@@ -141,6 +156,9 @@ export default class TimeGrid extends Component {
     }
 
     this.applyScroll()
+    setTimeout(() => {
+      this.positionTimeIndicator()
+    }, 1000)
     //this.checkOverflow()
   }
 
@@ -176,37 +194,83 @@ export default class TimeGrid extends Component {
     })
   }
 
-  renderEvents(range, events, now, resources) {
-    let { min, max, components, accessors, localizer } = this.props
+  renderDayColumn(
+    events,
+    date,
+    dateIndex,
+    allResources,
+    resource,
+    resourceId,
+    resourceIndex,
+    now
+  ) {
+    const {
+      min,
+      max,
+      components,
+      accessors,
+      localizer,
+      resourcesGroupBy,
+    } = this.props
+    const groupedEvents = allResources.groupEvents(events)
 
-    const groupedEvents = resources.groupEvents(events)
+    const daysEvents = (groupedEvents.get(resourceId) || []).filter(event =>
+      dates.inRange(date, accessors.start(event), accessors.end(event), 'day')
+    )
 
-    return resources.map(([id, resource], i) =>
-      range.map((date, jj) => {
-        let daysEvents = (groupedEvents.get(id) || []).filter(event =>
-          dates.inRange(
+    return (
+      <DayColumn
+        {...this.props}
+        localizer={localizer}
+        min={dates.merge(date, min)}
+        max={dates.merge(date, max)}
+        resource={resource && resourceId}
+        components={components}
+        isNow={dates.eq(date, now, 'day')}
+        key={resourceIndex + '-' + dateIndex}
+        date={date}
+        events={daysEvents}
+        className={
+          resourceIndex === allResources.length - 1 &&
+          resourcesGroupBy === 'date'
+            ? 'rbc-time-column-last-in-resource'
+            : undefined
+        }
+      />
+    )
+  }
+
+  renderEvents(range, events, now, allResources) {
+    if (this.props.resourcesGroupBy === 'date') {
+      return range.map((date, dateIndex) =>
+        allResources.map(([resourceId, resource], resourceIndex) =>
+          this.renderDayColumn(
+            events,
             date,
-            accessors.start(event),
-            accessors.end(event),
-            'day'
+            dateIndex,
+            allResources,
+            resource,
+            resourceId,
+            resourceIndex,
+            now
           )
         )
+      )
+    }
 
-        return (
-          <DayColumn
-            {...this.props}
-            localizer={localizer}
-            min={dates.merge(date, min)}
-            max={dates.merge(date, max)}
-            resource={resource && id}
-            components={components}
-            isNow={dates.eq(date, now, 'day')}
-            key={i + '-' + jj}
-            date={date}
-            events={daysEvents}
-          />
+    return allResources.map(([resourceId, resource], resourceIndex) =>
+      range.map((date, dateIndex) =>
+        this.renderDayColumn(
+          events,
+          date,
+          dateIndex,
+          allResources,
+          resource,
+          resourceId,
+          resourceIndex,
+          now
         )
-      })
+      )
     )
   }
 
@@ -226,6 +290,7 @@ export default class TimeGrid extends Component {
       max,
       showMultiDayTimes,
       longPressThreshold,
+      resourcesGroupBy,
     } = this.props
 
     let _resources = Resources(resources, accessors)
@@ -275,6 +340,7 @@ export default class TimeGrid extends Component {
           localizer={localizer}
           selected={selected}
           resources={_resources}
+          resourcesGroupBy={resourcesGroupBy}
           selectable={this.props.selectable}
           accessors={accessors}
           getters={getters}
