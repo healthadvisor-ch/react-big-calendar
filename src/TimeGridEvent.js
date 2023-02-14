@@ -50,12 +50,14 @@ class TimeGridEvent extends React.Component {
 
     // treat < 400 ms touches on events as clicks on touch devices
     let { timestamp } = this.state
-    let onTouchStart = e => {
-      if (e.pointerType === 'mouse') return
+    let onTouchStart = () => {
       this.setState({ timestamp: Date.now() })
     }
     let onTouchEnd = e => {
-      if (e.pointerType === 'mouse') return
+      if (e.pointerType === 'mouse') {
+        this.setState({ timestamp: 0 })
+        return
+      }
       let now = Date.now()
       if (now - timestamp < 400) {
         onClick(e)
@@ -65,7 +67,15 @@ class TimeGridEvent extends React.Component {
     return (
       <EventWrapper type="time" {...this.props}>
         <div
-          onClick={onClick}
+          onClick={e => {
+            const now = Date.now()
+            if (now - timestamp < 400) {
+              onClick(e)
+            } else {
+              e.stopPropagation()
+              e.preventDefault()
+            }
+          }}
           onPointerDown={onTouchStart}
           onPointerUp={onTouchEnd}
           onDoubleClick={onDoubleClick}
