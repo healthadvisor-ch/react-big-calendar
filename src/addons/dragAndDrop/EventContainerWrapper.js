@@ -136,9 +136,12 @@ class EventContainerWrapper extends React.Component {
     selector.on('selecting', box => {
       const bounds = getBoundsForNode(node)
       const { dragAndDropAction } = this.context.draggable
+      const isMoving = dragAndDropAction.action === 'move'
+      const isResizing = dragAndDropAction.action === 'resize'
+      this.setState({ isMoving, isResizing })
 
-      if (dragAndDropAction.action === 'move') this.handleMove(box, bounds)
-      if (dragAndDropAction.action === 'resize') this.handleResize(box, bounds)
+      if (isMoving) this.handleMove(box, bounds)
+      if (isResizing) this.handleResize(box, bounds)
     })
 
     selector.on('selectStart', () => this.context.draggable.onStart())
@@ -146,7 +149,15 @@ class EventContainerWrapper extends React.Component {
     selector.on('select', point => {
       const bounds = getBoundsForNode(node)
 
-      if (!this.state.event || !pointInColumn(bounds, point)) return
+      if (
+        !this.state.event ||
+        !pointInColumn(bounds, point) ||
+        this.state.isMoving ||
+        this.state.isResizing
+      ) {
+        this.setState({ isMoving: false, isResizing: false })
+        return
+      }
       this.handleInteractionEnd()
     })
 
