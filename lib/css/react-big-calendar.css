@@ -91,7 +91,6 @@ button.rbc-input::-moz-focus-inner {
 }
 .rbc-row-content {
   position: relative;
-  -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
   -webkit-user-select: none;
@@ -282,7 +281,6 @@ button.rbc-input::-moz-focus-inner {
   -ms-flex: 1 0 0px;
   flex: 1 0 0;
   width: 100%;
-  -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
   -webkit-user-select: none;
@@ -689,7 +687,6 @@ button.rbc-input::-moz-focus-inner {
 }
 .rbc-time-content > .rbc-day-slot {
   width: 100%;
-  -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
   -webkit-user-select: none;

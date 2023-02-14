@@ -57,17 +57,18 @@
     "bracketSpacing": true
   },
   "peerDependencies": {
-    "react": "^15.3.0 || ^16.0.0",
-    "react-dom": "^15.3.0 || ^16.0.0"
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0"
   },
   "devDependencies": {
     "@4c/rollout": "^1.2.0",
-    "@babel/core": "^7.1.0",
+    "@babel/cli": "^7.17.6",
+    "@babel/core": "^7.17.8",
     "@storybook/addon-actions": "^3.4.11",
     "@storybook/react": "3.4.11",
     "babel-core": "^7.0.0-bridge.0",
     "babel-eslint": "^9.0.0",
-    "babel-jest": "^23.6.0",
+    "babel-jest": "^23.4.2",
     "babel-preset-jason": "^6.0.1",
     "bootstrap": "^3.3.5",
     "component-metadata-loader": "^4.0.0",
@@ -90,13 +91,12 @@
     "moment": "^2.22.2",
     "mt-changelog": "^0.6.1",
     "prettier": "^1.14.3",
-    "react": "^16.5.2",
+    "react": "^17.0.2",
     "react-bootstrap": "^0.32.4",
-    "react-dnd": "^2.1.4",
-    "react-dnd-html5-mixed-backend": "git+https://github.com/greg-dev/react-dnd-html5-mixed-backend.git",
+    "react-dnd": "^2.6.0",
+    "react-dnd-html5-mixed-backend": "git+https://github.com/rspective/react-dnd-html5-mixed-backend.git",
     "react-docgen": "^3.0.0-rc.1",
-    "react-dom": "^16.5.2",
-    "react-tackle-box": "^2.1.0",
+    "react-dom": "^17.0.2",
     "rimraf": "^2.4.2",
     "webpack": "^4.19.1",
     "webpack-atoms": "^8.0.0",
@@ -104,18 +104,18 @@
     "webpack-dev-server": "^3.1.8"
   },
   "dependencies": {
-    "@babel/cli": "^7.1.0",
-    "classnames": "^2.2.6",
+    "@babel/runtime": "^7.17.8",
+    "classnames": "^2.3.1",
     "date-arithmetic": "^3.0.0",
     "dom-helpers": "^2.3.0 || ^3.0.0",
     "invariant": "^2.2.4",
-    "lodash": "^4.17.11",
-    "memoize-one": "^4.0.2",
-    "prop-types": "^15.6.2",
-    "prop-types-extra": "^1.1.0",
+    "lodash": "^4.17.21",
+    "memoize-one": "^4.0.0",
+    "prop-types": "^15.8.1",
+    "prop-types-extra": "^1.1.1",
     "react-overlays": "^0.8.3",
     "uncontrollable": "^7.2.1",
-    "warning": "^4.0.2"
+    "warning": "^4.0.3"
   },
   "resolutions": {
     "babel-core": "7.0.0-bridge.0"
