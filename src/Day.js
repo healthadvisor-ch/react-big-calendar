@@ -4,7 +4,6 @@ import React from 'react'
 import dates from './utils/dates'
 import { navigate } from './utils/constants'
 import TimeGrid from './TimeGrid'
-import localizer from './localizer'
 
 class Day extends React.Component {
   static propTypes = {
@@ -13,15 +12,14 @@ class Day extends React.Component {
 
   render() {
     let { date, ...props } = this.props
+    let range = Day.range(date)
 
-    return (
-      <TimeGrid
-        {...props}
-        range={[dates.startOf(date, 'day')]}
-        eventOffset={10}
-      />
-    )
+    return <TimeGrid {...props} range={range} eventOffset={10} />
   }
+}
+
+Day.range = date => {
+  return [dates.startOf(date, 'day')]
 }
 
 Day.navigate = (date, action) => {
@@ -37,7 +35,6 @@ Day.navigate = (date, action) => {
   }
 }
 
-Day.title = (date, { formats, culture }) =>
-  localizer.format(date, formats.dayHeaderFormat, culture)
+Day.title = (date, { localizer }) => localizer.format(date, 'dayHeaderFormat')
 
 export default Day

@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import { DragSource } from 'react-dnd'
-import { getEmptyImage } from 'react-dnd-html5-backend'
+import { getEmptyImage } from 'react-dnd-html5-mixed-backend'
 import compose from './compose'
 
 class ResizableEvent extends React.Component {
@@ -72,16 +72,24 @@ ResizableEvent.propTypes = {
   connectTopDragPreview: PropTypes.func,
   connectTopDragSource: PropTypes.func,
   event: PropTypes.object,
-  title: PropTypes.string,
+  title: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
   isAllDay: PropTypes.bool,
 }
 
 const eventSourceTop = {
-  beginDrag: ({ event }) => ({ ...event, type: 'resizeTop' }),
+  beginDrag: ({ event }) => {
+    window.resizeType = 'resizeTop'
+    window.dateCell = null
+    return { ...event, type: 'resizeTop' }
+  },
 }
 
 const eventSourceBottom = {
-  beginDrag: ({ event }) => ({ ...event, type: 'resizeBottom' }),
+  beginDrag: ({ event }) => {
+    window.resizeType = 'resizeBottom'
+    window.dateCell = null
+    return { ...event, type: 'resizeBottom' }
+  },
 }
 
 const eventSourceLeft = {

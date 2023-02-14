@@ -8,13 +8,16 @@ class Toolbar extends React.Component {
     view: PropTypes.string.isRequired,
     views: PropTypes.arrayOf(PropTypes.string).isRequired,
     label: PropTypes.node.isRequired,
-    messages: PropTypes.object,
+    localizer: PropTypes.object,
     onNavigate: PropTypes.func.isRequired,
-    onViewChange: PropTypes.func.isRequired,
+    onView: PropTypes.func.isRequired,
   }
 
   render() {
-    let { messages, label } = this.props
+    let {
+      localizer: { messages },
+      label,
+    } = this.props
 
     return (
       <div className="rbc-toolbar">
@@ -51,7 +54,7 @@ class Toolbar extends React.Component {
   }
 
   view = view => {
-    this.props.onViewChange(view)
+    this.props.onView(view)
   }
 
   viewNamesGroup(messages) {

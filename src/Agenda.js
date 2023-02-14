@@ -4,12 +4,8 @@ import classes from 'dom-helpers/class'
 import getWidth from 'dom-helpers/query/width'
 import scrollbarSize from 'dom-helpers/util/scrollbarSize'
 
-import localizer from './localizer'
-import message from './utils/messages'
 import dates from './utils/dates'
 import { navigate } from './utils/constants'
-import { accessor as get } from './utils/accessors'
-import { accessor, dateFormat, dateRangeFormat } from './utils/propTypes'
 import { inRange } from './utils/eventLevels'
 import { isSelected } from './utils/selection'
 
@@ -18,24 +14,13 @@ class Agenda extends React.Component {
     events: PropTypes.array,
     date: PropTypes.instanceOf(Date),
     length: PropTypes.number.isRequired,
-    titleAccessor: accessor.isRequired,
-    tooltipAccessor: accessor.isRequired,
-    allDayAccessor: accessor.isRequired,
-    startAccessor: accessor.isRequired,
-    endAccessor: accessor.isRequired,
-    eventPropGetter: PropTypes.func,
+
     selected: PropTypes.object,
 
-    agendaDateFormat: dateFormat,
-    agendaTimeFormat: dateFormat,
-    agendaTimeRangeFormat: dateRangeFormat,
-    culture: PropTypes.string,
-
+    accessors: PropTypes.object.isRequired,
     components: PropTypes.object.isRequired,
-    messages: PropTypes.shape({
-      date: PropTypes.string,
-      time: PropTypes.string,
-    }),
+    getters: PropTypes.object.isRequired,
+    localizer: PropTypes.object.isRequired,
   }
 
   static defaultProps = {
@@ -51,75 +36,80 @@ class Agenda extends React.Component {
   }
 
   render() {
-    let { length, date, events, startAccessor } = this.props
-    let messages = message(this.props.messages)
+    let { length, date, events, accessors, localizer } = this.props
+    let { messages } = localizer
     let end = dates.add(date, length, 'day')
 
     let range = dates.range(date, end, 'day')
 
-    events = events.filter(event => inRange(event, date, end, this.props))
+    events = events.filter(event => inRange(event, date, end, accessors))
 
-    events.sort((a, b) => +get(a, startAccessor) - +get(b, startAccessor))
+    events.sort((a, b) => +accessors.start(a) - +accessors.start(b))
 
     return (
       <div className="rbc-agenda-view">
-        <table ref="header">
-          <thead>
-            <tr>
-              <th className="rbc-header" ref="dateCol">
-                {messages.date}
-              </th>
-              <th className="rbc-header" ref="timeCol">
-                {messages.time}
-              </th>
-              <th className="rbc-header">{messages.event}</th>
-            </tr>
-          </thead>
-        </table>
-        <div className="rbc-agenda-content" ref="content">
-          <table>
-            <tbody ref="tbody">
-              {range.map((day, idx) => this.renderDay(day, events, idx))}
-            </tbody>
-          </table>
-        </div>
+        {events.length !== 0 ? (
+          <React.Fragment>
+            <table ref="header" className="rbc-agenda-table">
+              <thead>
+                <tr>
+                  <th className="rbc-header" ref="dateCol">
+                    {messages.date}
+                  </th>
+                  <th className="rbc-header" ref="timeCol">
+                    {messages.time}
+                  </th>
+                  <th className="rbc-header">{messages.event}</th>
+                </tr>
+              </thead>
+            </table>
+            <div className="rbc-agenda-content" ref="content">
+              <table className="rbc-agenda-table">
+                <tbody ref="tbody">
+                  {range.map((day, idx) => this.renderDay(day, events, idx))}
+                </tbody>
+              </table>
+            </div>
+          </React.Fragment>
+        ) : (
+          <span className="rbc-agenda-empty">{messages.noEventsInRange}</span>
+        )}
       </div>
     )
   }
 
   renderDay = (day, events, dayKey) => {
     let {
-      culture,
-      components,
-      titleAccessor,
-      agendaDateFormat,
-      eventPropGetter,
-      startAccessor,
-      endAccessor,
       selected,
+      getters,
+      accessors,
+      localizer,
+      components: { event: Event, date: AgendaDate },
     } = this.props
 
-    let EventComponent = components.event
-    let DateComponent = components.date
-
-    events = events.filter(e => inRange(e, day, day, this.props))
+    events = events.filter(e =>
+      inRange(e, dates.startOf(day, 'day'), dates.endOf(day, 'day'), accessors)
+    )
 
     return events.map((event, idx) => {
-      const { className, style } = eventPropGetter
-        ? eventPropGetter(
-            event,
-            get(event, startAccessor),
-            get(event, endAccessor),
-            isSelected(event, selected)
-          )
-        : {}
-      let dateLabel =
-        idx === 0 && localizer.format(day, agendaDateFormat, culture)
+      let title = accessors.title(event)
+      let end = accessors.end(event)
+      let start = accessors.start(event)
+      let icon = event.icon
+
+      const userProps = getters.eventProp(
+        event,
+        start,
+        end,
+        isSelected(event, selected)
+      )
+
+      let dateLabel = idx === 0 && localizer.format(day, 'agendaDateFormat')
       let first =
         idx === 0 ? (
           <td rowSpan={events.length} className="rbc-agenda-date-cell">
-            {DateComponent ? (
-              <DateComponent day={day} label={dateLabel} />
+            {AgendaDate ? (
+              <AgendaDate day={day} label={dateLabel} />
             ) : (
               dateLabel
             )}
@@ -128,19 +118,28 @@ class Agenda extends React.Component {
           false
         )
 
-      let title = get(event, titleAccessor)
-
       return (
-        <tr key={dayKey + '_' + idx} className={className} style={style}>
+        <tr
+          key={dayKey + '_' + idx}
+          className={userProps.className}
+          style={userProps.style}
+        >
           {first}
           <td className="rbc-agenda-time-cell">
             {this.timeRangeLabel(day, event)}
           </td>
           <td className="rbc-agenda-event-cell">
-            {EventComponent ? (
-              <EventComponent event={event} title={title} />
+            {Event ? (
+              <Event event={event} title={title} />
             ) : (
-              title
+              [
+                icon && (
+                  <i className="material-icons" key={icon}>
+                    {icon}
+                  </i>
+                ),
+                event.label || title,
+              ]
             )}
           </td>
         </tr>
@@ -149,33 +148,22 @@ class Agenda extends React.Component {
   }
 
   timeRangeLabel = (day, event) => {
-    let {
-      endAccessor,
-      startAccessor,
-      allDayAccessor,
-      culture,
-      messages,
-      components,
-    } = this.props
+    let { accessors, localizer, components } = this.props
 
     let labelClass = '',
       TimeComponent = components.time,
-      label = message(messages).allDay
+      label = localizer.messages.allDay
 
-    let start = get(event, startAccessor)
-    let end = get(event, endAccessor)
+    let end = accessors.end(event)
+    let start = accessors.start(event)
 
-    if (!get(event, allDayAccessor)) {
+    if (!accessors.allDay(event)) {
       if (dates.eq(start, end, 'day')) {
-        label = localizer.format(
-          { start, end },
-          this.props.agendaTimeRangeFormat,
-          culture
-        )
+        label = localizer.format({ start, end }, 'agendaTimeRangeFormat')
       } else if (dates.eq(day, start, 'day')) {
-        label = localizer.format(start, this.props.agendaTimeFormat, culture)
+        label = localizer.format(start, 'agendaTimeFormat')
       } else if (dates.eq(day, end, 'day')) {
-        label = localizer.format(end, this.props.agendaTimeFormat, culture)
+        label = localizer.format(end, 'agendaTimeFormat')
       }
     }
 
@@ -194,6 +182,8 @@ class Agenda extends React.Component {
   }
 
   _adjustHeader = () => {
+    if (!this.refs.tbody) return
+
     let header = this.refs.header
     let firstRow = this.refs.tbody.firstChild
 
@@ -222,6 +212,11 @@ class Agenda extends React.Component {
   }
 }
 
+Agenda.range = (start, { length = Agenda.defaultProps.length }) => {
+  let end = dates.add(start, length, 'day')
+  return { start, end }
+}
+
 Agenda.navigate = (date, action, { length = Agenda.defaultProps.length }) => {
   switch (action) {
     case navigate.PREVIOUS:
@@ -235,20 +230,9 @@ Agenda.navigate = (date, action, { length = Agenda.defaultProps.length }) => {
   }
 }
 
-Agenda.title = (
-  start,
-  { length = Agenda.defaultProps.length, formats, culture }
-) => {
+Agenda.title = (start, { length = Agenda.defaultProps.length, localizer }) => {
   let end = dates.add(start, length, 'day')
-  return localizer.format({ start, end }, formats.agendaHeaderFormat, culture)
-}
-
-Agenda.title = (
-  start,
-  { length = (length = Agenda.defaultProps.length), formats, culture }
-) => {
-  let end = dates.add(start, length, 'day')
-  return localizer.format({ start, end }, formats.agendaHeaderFormat, culture)
+  return localizer.format({ start, end }, 'agendaHeaderFormat')
 }
 
 export default Agenda

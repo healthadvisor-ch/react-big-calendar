@@ -1,6 +1,5 @@
 /* eslint no-fallthrough: off */
 import dateMath from 'date-arithmetic'
-import localizer from '../localizer'
 
 const MILLI = {
   seconds: 1000,
@@ -11,6 +10,9 @@ const MILLI = {
 
 const MONTHS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
+const getDstOffset = (start, end) =>
+  start.getTimezoneOffset() - end.getTimezoneOffset()
+
 let dates = {
   ...dateMath,
 
@@ -20,21 +22,21 @@ let dates = {
     return MONTHS.map(i => dates.month(date, i))
   },
 
-  firstVisibleDay(date, culture) {
+  firstVisibleDay(date, localizer) {
     let firstOfMonth = dates.startOf(date, 'month')
 
-    return dates.startOf(firstOfMonth, 'week', localizer.startOfWeek(culture))
+    return dates.startOf(firstOfMonth, 'week', localizer.startOfWeek())
   },
 
-  lastVisibleDay(date, culture) {
+  lastVisibleDay(date, localizer) {
     let endOfMonth = dates.endOf(date, 'month')
 
-    return dates.endOf(endOfMonth, 'week', localizer.startOfWeek(culture))
+    return dates.endOf(endOfMonth, 'week', localizer.startOfWeek())
   },
 
-  visibleDays(date, culture) {
-    let current = dates.firstVisibleDay(date, culture),
-      last = dates.lastVisibleDay(date, culture),
+  visibleDays(date, localizer) {
+    let current = dates.firstVisibleDay(date, localizer),
+      last = dates.lastVisibleDay(date, localizer),
       days = []
 
     while (dates.lte(current, last, 'day')) {
@@ -64,6 +66,9 @@ let dates = {
   },
 
   merge(date, time) {
+    // date = moment(date).tz('Europe/Zurich');
+    // time = moment(time).tz('Europe/Zurich');
+
     if (time == null && date == null) return null
 
     if (time == null) time = new Date()
@@ -104,15 +109,19 @@ let dates = {
   diff(dateA, dateB, unit) {
     if (!unit || unit === 'milliseconds') return Math.abs(+dateA - +dateB)
 
-    // the .round() handles an edge case
-    // with DST where the total won't be exact
-    // since one day in the range may be shorter/longer by an hour
-    return Math.round(
+    const d = Math.round(
       Math.abs(
         +dates.startOf(dateA, unit) / MILLI[unit] -
           +dates.startOf(dateB, unit) / MILLI[unit]
       )
     )
+
+    const offset = getDstOffset(dateA, dateB)
+
+    // the .round() handles an edge case
+    // with DST where the total won't be exact
+    // since one day in the range may be shorter/longer by an hour
+    return d + Math.min(0, offset)
   },
 
   total(date, unit) {

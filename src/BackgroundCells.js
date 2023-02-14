@@ -4,22 +4,19 @@ import { findDOMNode } from 'react-dom'
 import cn from 'classnames'
 
 import dates from './utils/dates'
-import { segStyle } from './utils/eventLevels'
 import { notify } from './utils/helpers'
-import { elementType } from './utils/propTypes'
-import {
-  dateCellSelection,
-  slotWidth,
-  getCellAtX,
-  pointInBox,
-} from './utils/selection'
+import { dateCellSelection, getSlotAtX, pointInBox } from './utils/selection'
 import Selection, { getBoundsForNode, isEvent } from './Selection'
 
 class BackgroundCells extends React.Component {
   static propTypes = {
     date: PropTypes.instanceOf(Date),
     getNow: PropTypes.func.isRequired,
-    cellWrapperComponent: elementType,
+    resourceId: PropTypes.any,
+
+    getters: PropTypes.object.isRequired,
+    components: PropTypes.object.isRequired,
+
     container: PropTypes.func,
     dayPropGetter: PropTypes.func,
     selectable: PropTypes.oneOf([true, false, 'ignoreEvents']),
@@ -50,7 +47,7 @@ class BackgroundCells extends React.Component {
     this._teardownSelectable()
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.selectable && !this.props.selectable) this._selectable()
 
     if (!nextProps.selectable && this.props.selectable)
@@ -60,10 +57,11 @@ class BackgroundCells extends React.Component {
   render() {
     let {
       range,
-      cellWrapperComponent: Wrapper,
-      dayPropGetter,
-      date: currentDate,
       getNow,
+      getters,
+      date: currentDate,
+      components: { dateCellWrapper: Wrapper },
+      resourceId,
     } = this.props
     let { selecting, startIdx, endIdx } = this.state
     let current = getNow()
@@ -72,15 +70,12 @@ class BackgroundCells extends React.Component {
       <div className="rbc-row-bg">
         {range.map((date, index) => {
           let selected = selecting && index >= startIdx && index <= endIdx
-          const { className, style: dayStyles } =
-            (dayPropGetter && dayPropGetter(date)) || {}
-          const segmStyles = segStyle(1, range.length)
-          const styles = Object.assign({}, dayStyles, segmStyles)
+          const { className, style } = getters.dayProp(date, resourceId)
 
           return (
             <Wrapper key={index} value={date} range={range}>
               <div
-                style={styles}
+                style={style}
                 className={cn(
                   'rbc-day-bg',
                   className,
@@ -110,19 +105,13 @@ class BackgroundCells extends React.Component {
         let { range, rtl } = this.props
 
         if (pointInBox(rowBox, point)) {
-          let width = slotWidth(getBoundsForNode(node), range.length)
-          let currentCell = getCellAtX(
-            rowBox,
-            point.x,
-            width,
-            rtl,
-            range.length
-          )
+          let currentCell = getSlotAtX(rowBox, point.x, rtl, range.length)
 
           this._selectSlot({
             startIdx: currentCell,
             endIdx: currentCell,
             action: actionType,
+            box: point,
           })
         }
       }
@@ -171,8 +160,8 @@ class BackgroundCells extends React.Component {
       selectorClicksHandler(point, 'doubleClick')
     )
 
-    selector.on('select', () => {
-      this._selectSlot({ ...this.state, action: 'select' })
+    selector.on('select', bounds => {
+      this._selectSlot({ ...this.state, action: 'select', bounds })
       this._initial = {}
       this.setState({ selecting: false })
       notify(this.props.onSelectEnd, [this.state])
@@ -185,13 +174,15 @@ class BackgroundCells extends React.Component {
     this._selector = null
   }
 
-  _selectSlot({ endIdx, startIdx, action }) {
+  _selectSlot({ endIdx, startIdx, action, bounds, box }) {
     if (endIdx !== -1 && startIdx !== -1)
       this.props.onSelectSlot &&
         this.props.onSelectSlot({
           start: startIdx,
           end: endIdx,
           action,
+          bounds,
+          box,
         })
   }
 }

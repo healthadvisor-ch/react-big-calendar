@@ -1,30 +1,21 @@
 import PropTypes from 'prop-types'
 import React from 'react'
-import { findDOMNode } from 'react-dom'
 import EventCell from './EventCell'
-import getHeight from 'dom-helpers/query/height'
-import { accessor, elementType } from './utils/propTypes'
-import { segStyle } from './utils/eventLevels'
 import { isSelected } from './utils/selection'
 
 /* eslint-disable react/prop-types */
 export default {
   propTypes: {
-    slots: PropTypes.number.isRequired,
-    end: PropTypes.instanceOf(Date),
-    start: PropTypes.instanceOf(Date),
+    slotMetrics: PropTypes.object.isRequired,
 
     selected: PropTypes.object,
     isAllDay: PropTypes.bool,
-    eventPropGetter: PropTypes.func,
-    titleAccessor: accessor,
-    tooltipAccessor: accessor,
-    allDayAccessor: accessor,
-    startAccessor: accessor,
-    endAccessor: accessor,
 
-    eventComponent: elementType,
-    eventWrapperComponent: elementType.isRequired,
+    accessors: PropTypes.object.isRequired,
+    localizer: PropTypes.object.isRequired,
+    components: PropTypes.object.isRequired,
+    getters: PropTypes.object.isRequired,
+
     onSelect: PropTypes.func,
     onDoubleClick: PropTypes.func,
   },
@@ -32,63 +23,52 @@ export default {
   defaultProps: {
     segments: [],
     selected: {},
-    slots: 7,
   },
 
   renderEvent(props, event) {
     let {
-      eventPropGetter,
       selected,
-      isAllDay,
-      start,
-      end,
-      startAccessor,
-      endAccessor,
-      titleAccessor,
-      tooltipAccessor,
-      allDayAccessor,
-      eventComponent,
-      eventWrapperComponent,
+      isAllDay: _,
+      accessors,
+      getters,
       onSelect,
       onDoubleClick,
+      localizer,
+      slotMetrics,
+      components,
     } = props
+
+    let continuesPrior = slotMetrics.continuesPrior(event)
+    let continuesAfter = slotMetrics.continuesAfter(event)
 
     return (
       <EventCell
         event={event}
-        eventWrapperComponent={eventWrapperComponent}
-        eventPropGetter={eventPropGetter}
+        getters={getters}
+        localizer={localizer}
+        accessors={accessors}
+        components={components}
         onSelect={onSelect}
         onDoubleClick={onDoubleClick}
+        continuesPrior={continuesPrior}
+        continuesAfter={continuesAfter}
         selected={isSelected(event, selected)}
-        isAllDay={isAllDay}
-        startAccessor={startAccessor}
-        endAccessor={endAccessor}
-        titleAccessor={titleAccessor}
-        tooltipAccessor={tooltipAccessor}
-        allDayAccessor={allDayAccessor}
-        slotStart={start}
-        slotEnd={end}
-        eventComponent={eventComponent}
       />
     )
   },
 
-  renderSpan(props, len, key, content = ' ') {
-    let { slots } = props
+  renderSpan(slots, len, key, content = ' ') {
+    let per = (Math.abs(len) / slots) * 100 + '%'
 
     return (
       <div
         key={key}
         className="rbc-row-segment"
-        style={segStyle(Math.abs(len), slots)}
+        // IE10/11 need max-width. flex-basis doesn't respect box-sizing
+        style={{ WebkitFlexBasis: per, flexBasis: per, maxWidth: per }}
       >
         {content}
       </div>
     )
-  },
-
-  getRowHeight() {
-    getHeight(findDOMNode(this))
   },
 }

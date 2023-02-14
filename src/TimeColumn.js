@@ -95,6 +95,10 @@ export default class TimeColumn extends Component {
       )
 
       next = dates.add(date, groupLengthInMinutes, 'minutes')
+      if (className === 'rbc-time-gutter' && +date === +next) {
+        // Safari bug
+        next = dates.add(date, groupLengthInMinutes * 2, 'minutes')
+      }
       renderedSlots.push(this.renderTimeSliceGroup(i, isNow, date, resource))
 
       date = next

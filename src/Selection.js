@@ -3,7 +3,7 @@ import closest from 'dom-helpers/query/closest'
 import events from 'dom-helpers/events'
 
 function addEventListener(type, handler, target = document) {
-  events.on(target, type, handler)
+  events.on(target, type, handler, { passive: false })
   return {
     remove() {
       events.off(target, type, handler)
@@ -15,9 +15,13 @@ function isOverContainer(container, x, y) {
   return !container || contains(container, document.elementFromPoint(x, y))
 }
 
-export function isEvent(node, { clientX, clientY }) {
+export function getEventNodeFromPoint(node, { clientX, clientY }) {
   let target = document.elementFromPoint(clientX, clientY)
-  return !!closest(target, '.rbc-event', node)
+  return closest(target, '.rbc-event', node)
+}
+
+export function isEvent(node, bounds) {
+  return !!getEventNodeFromPoint(node, bounds)
 }
 
 function getEventCoordinates(e) {
@@ -321,6 +325,12 @@ class Selection {
     let left = Math.min(pageX, x),
       top = Math.min(pageY, y),
       old = this.selecting
+
+    // Prevent emitting selectStart event until mouse is moved.
+    // in Chrome on Windows, mouseMove event may be fired just after mouseDown event.
+    if (!old && !(w || h)) {
+      return
+    }
 
     this.selecting = true
     this._selectRect = {

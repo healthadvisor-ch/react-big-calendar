@@ -9,8 +9,9 @@ export function positionFromDate(date, min, total) {
   if (startsBefore(date, min)) {
     return 0
   }
+  const fromBegin = dates.merge(min, date)
+  let diff = dates.diff(min, fromBegin, 'minutes')
 
-  const diff = dates.diff(min, dates.merge(min, date), 'minutes')
   return Math.min(diff, total)
 }
 

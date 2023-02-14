@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import { DragSource } from 'react-dnd'
-import { getEmptyImage } from 'react-dnd-html5-backend'
+import { getEmptyImage } from 'react-dnd-html5-mixed-backend'
 import compose from './compose'
 
 class ResizableMonthEvent extends React.Component {
@@ -46,7 +46,7 @@ ResizableMonthEvent.propTypes = {
   connectLeftDragSource: PropTypes.func,
   connectRightDragPreview: PropTypes.func,
   connectRightDragSource: PropTypes.func,
-  title: PropTypes.string,
+  title: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
 }
 
 export default compose(

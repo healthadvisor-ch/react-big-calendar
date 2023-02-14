@@ -39,11 +39,12 @@ const customSlotPropGetter = date => {
   else return {}
 }
 
-let Rendering = () => (
+let Rendering = ({ localizer }) => (
   <BigCalendar
     events={events}
+    localizer={localizer}
     defaultDate={new Date(2015, 3, 1)}
-    defaultView="agenda"
+    defaultView={BigCalendar.Views.AGENDA}
     dayPropGetter={customDayPropGetter}
     slotPropGetter={customSlotPropGetter}
     components={{
