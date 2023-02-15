@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import PropTypes from 'prop-types'
 import React from 'react'
 import cn from 'classnames'
@@ -122,6 +123,7 @@ export default function withDragAndDrop(Calendar) {
     }
 
     handleBeginAction = (event, action, direction, nativeEvent) => {
+      console.log(`withDnD - handleBeginAction!`)
       this.setState({ event, action, direction, nativeEvent })
       this.props.onEventActionStart({
         event,
@@ -131,10 +133,12 @@ export default function withDragAndDrop(Calendar) {
     }
 
     handleInteractionStart = () => {
+      console.log(`withDnD - handleInteractionStart!`)
       this.setState({ interacting: true })
     }
 
     handleInteractionEnd = interactionInfo => {
+      console.log('withDnD - handleInteractionEnd')
       const { action, event } = this.state
 
       this.setState({
@@ -143,6 +147,10 @@ export default function withDragAndDrop(Calendar) {
         interacting: false,
         direction: null,
       })
+      console.log(
+        `with drag and drop - handle interaction end! ${interactionInfo ==
+          null} action: ${action}`
+      )
 
       if (interactionInfo == null) return
 

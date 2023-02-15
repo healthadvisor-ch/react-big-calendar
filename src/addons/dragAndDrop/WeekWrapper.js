@@ -107,6 +107,8 @@ class WeekWrapper extends React.Component {
   }
 
   handleResize(point, node) {
+    // eslint-disable-next-line no-console
+    console.log('WeekWrapper - handleResize')
     const { event, direction } = this.context.draggable.dragAndDropAction
     const { accessors, slotMetrics: metrics } = this.props
 

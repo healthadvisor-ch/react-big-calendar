@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import PropTypes from 'prop-types'
 import React from 'react'
 import { findDOMNode } from 'react-dom'
@@ -217,6 +218,7 @@ class DayColumn extends React.Component {
     }))
 
     let maybeSelect = box => {
+      console.log('dc - maybe select')
       let onSelecting = this.props.onSelecting
       let current = this.state || {}
       let state = selectionState(box)
@@ -241,6 +243,7 @@ class DayColumn extends React.Component {
     }
 
     let selectionState = point => {
+      console.log('dc - selection state')
       let currentSlot = this.slotMetrics.closestSlotFromPoint(
         point,
         getBoundsForNode(node)
@@ -267,6 +270,7 @@ class DayColumn extends React.Component {
     }
 
     let selectorClicksHandler = (box, actionType) => {
+      console.log(`dc - click handler - ${actionType}`)
       if (!isEvent(findDOMNode(this), box)) {
         const { startDate, endDate } = selectionState(box)
         this._selectSlot({
@@ -284,9 +288,12 @@ class DayColumn extends React.Component {
     selector.on('selectStart', maybeSelect)
 
     selector.on('beforeSelect', box => {
+      console.log(`dc - beforeselect, selectable: ${this.props.selectable}`)
       if (this.props.selectable !== 'ignoreEvents') return
 
-      return !isEvent(findDOMNode(this), box)
+      const res = !isEvent(findDOMNode(this), box)
+      console.log(`dc - beforeselect result: ${res}`)
+      return res
     })
 
     selector.on('click', box => selectorClicksHandler(box, 'click'))
@@ -294,6 +301,7 @@ class DayColumn extends React.Component {
     selector.on('doubleClick', box => selectorClicksHandler(box, 'doubleClick'))
 
     selector.on('select', bounds => {
+      console.log(`dc - select selecting ${this.state.selecting}`)
       if (this.state.selecting) {
         this._selectSlot({ ...this.state, action: 'select', bounds })
         this.setState({ selecting: false })
@@ -308,6 +316,7 @@ class DayColumn extends React.Component {
   }
 
   _selectSlot = ({ startDate, endDate, action, bounds, box }) => {
+    console.log('dc - selectslot!')
     let current = startDate,
       repeatLimit = (24 * 60) / this.props.step,
       slots = []
@@ -331,6 +340,7 @@ class DayColumn extends React.Component {
   }
 
   _select = (...args) => {
+    console.log('dc - _select!')
     notify(this.props.onSelectEvent, args)
   }
 

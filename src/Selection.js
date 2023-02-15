@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import contains from 'dom-helpers/query/contains'
 import closest from 'dom-helpers/query/closest'
 import events from 'dom-helpers/events'
@@ -230,6 +231,9 @@ class Selection {
     )
 
     if (result === false) return
+    console.log(
+      `selection - adding event listeners in initial event, e.type: ${e.type}`
+    )
 
     switch (e.type) {
       case 'mousedown':
@@ -259,6 +263,7 @@ class Selection {
   }
 
   _handleTerminatingEvent(e) {
+    console.log('sel - handleTerminatingEvent')
     const { pageX, pageY } = getEventCoordinates(e)
 
     this.selecting = false
@@ -287,6 +292,7 @@ class Selection {
   }
 
   _handleClickEvent(e) {
+    console.log('sel - handleClickEvent')
     const { pageX, pageY, clientX, clientY } = getEventCoordinates(e)
     const now = new Date().getTime()
 
@@ -317,6 +323,7 @@ class Selection {
   }
 
   _handleMoveEvent(e) {
+    console.log('sel - handlemoveevent')
     let { x, y } = this._initialEventData
     const { pageX, pageY } = getEventCoordinates(e)
     let w = Math.abs(x - pageX)
@@ -343,10 +350,17 @@ class Selection {
     }
 
     if (!old) {
+      console.log('move event - !old - emit selectStart')
       this.emit('selectStart', this._initialEventData)
     }
 
-    if (!this.isClick(pageX, pageY)) this.emit('selecting', this._selectRect)
+    const isClick = this.isClick(pageX, pageY)
+    console.log(
+      `move event - isClick? ${isClick} pageX ${pageX} pageY ${pageY}`
+    )
+    if (!isClick) {
+      this.emit('selecting', this._selectRect)
+    }
 
     e.preventDefault()
   }
@@ -359,8 +373,8 @@ class Selection {
     let { x, y, isTouch } = this._initialEventData
     return (
       !isTouch &&
-      (Math.abs(pageX - x) <= clickTolerance &&
-        Math.abs(pageY - y) <= clickTolerance)
+      Math.abs(pageX - x) <= clickTolerance &&
+        Math.abs(pageY - y) <= clickTolerance
     )
   }
 }
@@ -402,15 +416,17 @@ export function objectsCollide(nodeA, nodeB, tolerance = 0) {
     bottom: bBottom = bTop,
   } = getBoundsForNode(nodeB)
 
-  return !// 'a' bottom doesn't touch 'b' top
-  (
-    aBottom - tolerance < bTop ||
-    // 'a' top doesn't touch 'b' bottom
-    aTop + tolerance > bBottom ||
-    // 'a' right doesn't touch 'b' left
-    aRight - tolerance < bLeft ||
-    // 'a' left doesn't touch 'b' right
-    aLeft + tolerance > bRight
+  return !(
+    // 'a' bottom doesn't touch 'b' top
+    (
+      aBottom - tolerance < bTop ||
+      // 'a' top doesn't touch 'b' bottom
+      aTop + tolerance > bBottom ||
+      // 'a' right doesn't touch 'b' left
+      aRight - tolerance < bLeft ||
+      // 'a' left doesn't touch 'b' right
+      aLeft + tolerance > bRight
+    )
   )
 }
 

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import _ from 'lodash'
 import cn from 'classnames'
 import React from 'react'
@@ -50,15 +51,18 @@ class TimeGridEvent extends React.Component {
 
     // treat < 400 ms touches on events as clicks on touch devices
     let { timestamp } = this.state
-    let onTouchStart = () => {
+    let onTouchStart = e => {
+      console.log(`TGE - onTouchStart: ${e.pointerType}`)
       this.setState({ timestamp: Date.now() })
     }
     let onTouchEnd = e => {
+      console.log(`TGE - onTouchEnd: ${e.pointerType}`)
       if (e.pointerType === 'mouse') {
         return
       }
       let now = Date.now()
       if (now - timestamp < 400) {
+        console.log('TGE - onClick!')
         onClick(e)
       }
     }

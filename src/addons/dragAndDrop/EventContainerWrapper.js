@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import PropTypes from 'prop-types'
 import React from 'react'
 import dates from '../../utils/dates'
@@ -72,6 +73,7 @@ class EventContainerWrapper extends React.Component {
   }
 
   handleMove = (point, boundaryBox) => {
+    console.log('ECW - handlemove')
     const { event } = this.context.draggable.dragAndDropAction
     const { accessors, slotMetrics } = this.props
 
@@ -100,6 +102,7 @@ class EventContainerWrapper extends React.Component {
     let start, end
     const { accessors, slotMetrics } = this.props
     const { event, direction } = this.context.draggable.dragAndDropAction
+    console.log(`ECW - handleResize - direction ${direction}`)
 
     let currentSlot = slotMetrics.closestSlotFromPoint(point, boundaryBox)
     if (direction === 'UP') {
@@ -120,6 +123,7 @@ class EventContainerWrapper extends React.Component {
     ))
 
     selector.on('beforeSelect', point => {
+      console.log('ECW - on beforeselect')
       const { dragAndDropAction } = this.context.draggable
 
       if (!dragAndDropAction.action) return false
@@ -136,6 +140,8 @@ class EventContainerWrapper extends React.Component {
     selector.on('selecting', box => {
       const bounds = getBoundsForNode(node)
       const { dragAndDropAction } = this.context.draggable
+      console.log(`ECW - on selecting ${dragAndDropAction.action}`)
+      // most likely changes below are unnecessary (set state and new consts)
       const isMoving = dragAndDropAction.action === 'move'
       const isResizing = dragAndDropAction.action === 'resize'
       this.setState({ isMoving, isResizing })
@@ -144,9 +150,13 @@ class EventContainerWrapper extends React.Component {
       if (isResizing) this.handleResize(box, bounds)
     })
 
-    selector.on('selectStart', () => this.context.draggable.onStart())
+    selector.on('selectStart', () => {
+      console.log('ECW - on  select start')
+      this.context.draggable.onStart()
+    })
 
     selector.on('select', point => {
+      console.log('ECW - on select')
       const bounds = getBoundsForNode(node)
 
       if (
@@ -161,7 +171,10 @@ class EventContainerWrapper extends React.Component {
       this.handleInteractionEnd()
     })
 
-    selector.on('click', () => this.context.draggable.onEnd(null))
+    selector.on('click', () => {
+      console.log('ECW - on click')
+      this.context.draggable.onEnd(null)
+    })
   }
 
   handleInteractionEnd = () => {
