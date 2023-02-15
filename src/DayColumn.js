@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
 import PropTypes from 'prop-types'
-import React from 'react'
-import { findDOMNode } from 'react-dom'
+import React, { createRef } from 'react'
 import cn from 'classnames'
 
 import Selection, { getBoundsForNode, isEvent } from './Selection'
@@ -11,6 +10,7 @@ import { isSelected } from './utils/selection'
 
 import { notify } from './utils/helpers'
 import * as DayEventLayout from './utils/DayEventLayout'
+import DayColumnWrapper from './DayColumnWrapper'
 import TimeSlotGroup from './TimeSlotGroup'
 import TimeGridEvent from './TimeGridEvent'
 
@@ -61,6 +61,7 @@ class DayColumn extends React.Component {
     super(...args)
 
     this.slotMetrics = TimeSlotUtils.getSlotMetrics(this.props)
+    this.containerRef = createRef()
   }
 
   componentDidMount() {
@@ -81,6 +82,7 @@ class DayColumn extends React.Component {
 
   render() {
     const {
+      date,
       max,
       rtl,
       isNow,
@@ -102,8 +104,13 @@ class DayColumn extends React.Component {
       {}
     )
 
+    const DayColumnWrapperComponent =
+      components.dayColumnWrapper || DayColumnWrapper
+
     return (
-      <div
+      <DayColumnWrapperComponent
+        ref={this.containerRef}
+        date={date}
         style={style}
         {...dataProps}
         className={cn(
@@ -115,6 +122,7 @@ class DayColumn extends React.Component {
           isNow && 'rbc-today', // WHY
           selecting && 'rbc-slot-selecting'
         )}
+        slotMetrics={slotMetrics}
       >
         {slotMetrics.groups.map((grp, idx) => (
           <TimeSlotGroup
@@ -143,7 +151,7 @@ class DayColumn extends React.Component {
             <span>{localizer.format(selectDates, 'selectRangeFormat')}</span>
           </div>
         )}
-      </div>
+      </DayColumnWrapperComponent>
     )
   }
 
@@ -212,8 +220,8 @@ class DayColumn extends React.Component {
   }
 
   _selectable = () => {
-    let node = findDOMNode(this)
-    let selector = (this._selector = new Selection(() => findDOMNode(this), {
+    let node = this.containerRef.current
+    let selector = (this._selector = new Selection(() => node, {
       longPressThreshold: this.props.longPressThreshold,
     }))
 
@@ -271,7 +279,7 @@ class DayColumn extends React.Component {
 
     let selectorClicksHandler = (box, actionType) => {
       console.log(`dc - click handler - ${actionType}`)
-      if (!isEvent(findDOMNode(this), box)) {
+      if (!isEvent(this.containerRef.current, box)) {
         const { startDate, endDate } = selectionState(box)
         this._selectSlot({
           startDate,
@@ -291,7 +299,7 @@ class DayColumn extends React.Component {
       console.log(`dc - beforeselect, selectable: ${this.props.selectable}`)
       if (this.props.selectable !== 'ignoreEvents') return
 
-      const res = !isEvent(findDOMNode(this), box)
+      const res = !isEvent(this.containerRef.current, box)
       console.log(`dc - beforeselect result: ${res}`)
       return res
     })

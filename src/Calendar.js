@@ -660,6 +660,7 @@ class Calendar extends React.Component {
      * ```
      */
     components: PropTypes.shape({
+      dayColumnWrapper: elementType,
       event: elementType,
       eventWrapper: elementType,
       eventContainerWrapper: elementType,
