@@ -5,7 +5,7 @@ import React, { Component } from 'react'
 import * as TimeSlotUtils from './utils/TimeSlots'
 import TimeSlotGroup from './TimeSlotGroup'
 
-export default class TimeGutter extends Component {
+class TimeGutter extends Component {
   static propTypes = {
     min: PropTypes.instanceOf(Date).isRequired,
     max: PropTypes.instanceOf(Date).isRequired,
@@ -16,6 +16,7 @@ export default class TimeGutter extends Component {
 
     localizer: PropTypes.object.isRequired,
     resource: PropTypes.string,
+    gutterRef: PropTypes.any,
   }
 
   constructor(...args) {
@@ -48,10 +49,10 @@ export default class TimeGutter extends Component {
   }
 
   render() {
-    const { resource, components } = this.props
+    const { resource, components, gutterRef } = this.props
 
     return (
-      <div className="rbc-time-gutter rbc-time-column">
+      <div className="rbc-time-gutter rbc-time-column" ref={gutterRef}>
         {this.slotMetrics.groups.map((grp, idx) => {
           return (
             <TimeSlotGroup
@@ -67,3 +68,7 @@ export default class TimeGutter extends Component {
     )
   }
 }
+
+export default React.forwardRef((props, ref) => (
+  <TimeGutter gutterRef={ref} {...props} />
+))
