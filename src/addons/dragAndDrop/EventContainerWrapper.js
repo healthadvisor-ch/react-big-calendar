@@ -2,7 +2,6 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import dates from '../../utils/dates'
-import { findDOMNode } from 'react-dom'
 
 import Selection, {
   getBoundsForNode,
@@ -40,6 +39,7 @@ class EventContainerWrapper extends React.Component {
   constructor(...args) {
     super(...args)
     this.state = {}
+    this.ref = React.createRef()
   }
 
   componentDidMount() {
@@ -72,33 +72,30 @@ class EventContainerWrapper extends React.Component {
     })
   }
 
-  handleMove = (point, boundaryBox) => {
+  handleMove = (point, bounds) => {
     console.log('ECW - handlemove')
+    if (!pointInColumn(bounds, point)) this.reset()
     const { event } = this.context.draggable.dragAndDropAction
     const { accessors, slotMetrics } = this.props
 
-    if (!pointInColumn(boundaryBox, point)) {
-      this.reset()
-      return
-    }
-
-    let currentSlot = slotMetrics.closestSlotFromPoint(
+    const newSlot = slotMetrics.closestSlotFromPoint(
       { y: point.y - this.eventOffsetTop, x: point.x },
-      boundaryBox
+      bounds
     )
 
     let eventStart = accessors.start(event)
     let eventEnd = accessors.end(event)
     let end = dates.add(
-      currentSlot,
+      newSlot,
       dates.diff(eventStart, eventEnd, 'minutes'),
       'minutes'
     )
 
-    this.update(event, slotMetrics.getRange(currentSlot, end))
+    this.update(event, slotMetrics.getRange(newSlot, end))
   }
 
   handleResize(point, boundaryBox) {
+    // TODO shall we move start/end computation to eventTimes function?
     let start, end
     const { accessors, slotMetrics } = this.props
     const { event, direction } = this.context.draggable.dragAndDropAction
@@ -117,9 +114,11 @@ class EventContainerWrapper extends React.Component {
   }
 
   _selectable = () => {
-    let node = findDOMNode(this)
+    let wrapper = this.ref.current
+    let node = wrapper.children[0]
+    let isBeingDragged = false
     let selector = (this._selector = new Selection(() =>
-      node.closest('.rbc-time-view')
+      wrapper.closest('.rbc-time-view')
     ))
 
     selector.on('beforeSelect', point => {
@@ -134,6 +133,12 @@ class EventContainerWrapper extends React.Component {
       const eventNode = getEventNodeFromPoint(node, point)
       if (!eventNode) return false
 
+      // eventOffsetTop is distance from the top of the event to the initial
+      // mouseDown position. We need this later to compute the new top of the
+      // event during move operations, since the final location is really a
+      // delta from this point. note: if we want to DRY this with WeekWrapper,
+      // probably better just to capture the mouseDown point here and do the
+      // placement computation in handleMove()...
       this.eventOffsetTop = point.y - getBoundsForNode(eventNode).top
     })
 
@@ -141,38 +146,40 @@ class EventContainerWrapper extends React.Component {
       const bounds = getBoundsForNode(node)
       const { dragAndDropAction } = this.context.draggable
       console.log(`ECW - on selecting ${dragAndDropAction.action}`)
-      // most likely changes below are unnecessary (set state and new consts)
-      const isMoving = dragAndDropAction.action === 'move'
-      const isResizing = dragAndDropAction.action === 'resize'
-      this.setState({ isMoving, isResizing })
 
-      if (isMoving) this.handleMove(box, bounds)
-      if (isResizing) this.handleResize(box, bounds)
+      if (dragAndDropAction.action === 'move') this.handleMove(box, bounds)
+      if (dragAndDropAction.action === 'resize') this.handleResize(box, bounds)
     })
 
     selector.on('selectStart', () => {
       console.log('ECW - on  select start')
+      isBeingDragged = true
       this.context.draggable.onStart()
     })
 
     selector.on('select', point => {
       console.log('ECW - on select')
       const bounds = getBoundsForNode(node)
-
-      if (
-        !this.state.event ||
-        !pointInColumn(bounds, point) ||
-        this.state.isMoving ||
-        this.state.isResizing
-      ) {
-        this.setState({ isMoving: false, isResizing: false })
+      isBeingDragged = false
+      const { dragAndDropAction } = this.context.draggable
+      if (dragAndDropAction.action === 'resize') {
+        this.handleInteractionEnd()
+      } else if (!this.state.event || !pointInColumn(bounds, point)) {
         return
+      } else {
+        this.handleInteractionEnd()
       }
-      this.handleInteractionEnd()
     })
 
     selector.on('click', () => {
       console.log('ECW - on click')
+      if (isBeingDragged) this.reset()
+      this.context.draggable.onEnd(null)
+    })
+
+    selector.on('reset', () => {
+      console.log('ECW - on reset')
+      this.reset()
       this.context.draggable.onEnd(null)
     })
   }
@@ -180,7 +187,6 @@ class EventContainerWrapper extends React.Component {
   handleInteractionEnd = () => {
     const { resource } = this.props
     const { event } = this.state
-
     this.reset()
 
     this.context.draggable.onEnd({
@@ -196,7 +202,7 @@ class EventContainerWrapper extends React.Component {
     this._selector = null
   }
 
-  render() {
+  renderContent() {
     const {
       children,
       accessors,
@@ -207,9 +213,9 @@ class EventContainerWrapper extends React.Component {
     } = this.props
 
     let { event, top, height } = this.state
-
     if (!event) return children
 
+    const events = children.props.children
     const { start, end } = event
 
     let label
@@ -224,25 +230,31 @@ class EventContainerWrapper extends React.Component {
     if (startsBeforeDay && startsAfterDay) label = localizer.messages.allDay
     else label = localizer.format({ start, end }, format)
 
-    return (
-      <React.Fragment>
-        {children}
+    return React.cloneElement(children, {
+      children: (
+        <React.Fragment>
+          {events}
 
-        {event && (
-          <TimeGridEvent
-            event={event}
-            label={label}
-            className="rbc-addons-dnd-drag-preview"
-            style={{ top, height, width: 100 }}
-            getters={getters}
-            components={{ ...components, eventWrapper: NoopWrapper }}
-            accessors={{ ...accessors, ...dragAccessors }}
-            continuesEarlier={startsBeforeDay}
-            continuesLater={startsAfterDay}
-          />
-        )}
-      </React.Fragment>
-    )
+          {event && (
+            <TimeGridEvent
+              event={event}
+              label={label}
+              className="rbc-addons-dnd-drag-preview"
+              style={{ top, height, width: 100 }}
+              getters={getters}
+              components={{ ...components, eventWrapper: NoopWrapper }}
+              accessors={{ ...accessors, ...dragAccessors }}
+              continuesPrior={startsBeforeDay}
+              continuesAfter={startsAfterDay}
+            />
+          )}
+        </React.Fragment>
+      ),
+    })
+  }
+
+  render() {
+    return <div ref={this.ref}>{this.renderContent()}</div>
   }
 }
 

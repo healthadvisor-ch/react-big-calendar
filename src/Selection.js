@@ -45,6 +45,7 @@ const clickInterval = 250
 
 class Selection {
   constructor(node, { global = false, longPressThreshold = 250 } = {}) {
+    this.isDetached = false
     this.container = node
     this.globalMouse = !node || global
     this.longPressThreshold = longPressThreshold
@@ -91,6 +92,7 @@ class Selection {
   }
 
   teardown() {
+    this.isDetached = true
     this.listeners = Object.create(null)
     this._onTouchMoveWindowListener && this._onTouchMoveWindowListener.remove()
     this._onInitialEventListener && this._onInitialEventListener.remove()
@@ -188,6 +190,8 @@ class Selection {
   }
 
   _handleInitialEvent(e) {
+    if (this.isDetached) return
+
     const { clientX, clientY, pageX, pageY } = getEventCoordinates(e)
     let node = this.container(),
       collides,
@@ -279,9 +283,9 @@ class Selection {
 
     this._initialEventData = null
 
-    if (click && !inRoot) {
-      return this.emit('reset')
-    }
+    // if (click && !inRoot) {
+    //   return this.emit('reset')
+    // }
 
     if (click && inRoot) {
       return this._handleClickEvent(e)
@@ -289,6 +293,8 @@ class Selection {
 
     // User drag-clicked in the Selectable area
     if (!click) return this.emit('select', bounds)
+
+    return this.emit('reset')
   }
 
   _handleClickEvent(e) {
@@ -323,7 +329,9 @@ class Selection {
   }
 
   _handleMoveEvent(e) {
+    if (this._initialEventData === null || this.isDetached) return
     console.log('sel - handlemoveevent')
+
     let { x, y } = this._initialEventData
     const { pageX, pageY } = getEventCoordinates(e)
     let w = Math.abs(x - pageX)
@@ -335,7 +343,7 @@ class Selection {
 
     // Prevent emitting selectStart event until mouse is moved.
     // in Chrome on Windows, mouseMove event may be fired just after mouseDown event.
-    if (!old && !(w || h)) {
+    if (this.isClick(pageX, pageY) && !old && !(w || h)) {
       return
     }
 
@@ -374,7 +382,7 @@ class Selection {
     return (
       !isTouch &&
       Math.abs(pageX - x) <= clickTolerance &&
-        Math.abs(pageY - y) <= clickTolerance
+      Math.abs(pageY - y) <= clickTolerance
     )
   }
 }
