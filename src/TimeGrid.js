@@ -1,14 +1,13 @@
 import PropTypes from 'prop-types'
 import cn from 'classnames'
-import raf from 'dom-helpers/util/requestAnimationFrame'
+import * as animationFrame from 'dom-helpers/animationFrame'
 import React, { Component } from 'react'
-import { findDOMNode } from 'react-dom'
 
 import dates from './utils/dates'
 import DayColumn from './DayColumn'
 import TimeGutter from './TimeGutter'
 
-import getWidth from 'dom-helpers/query/width'
+import getWidth from 'dom-helpers/width'
 import TimeGridHeader from './TimeGridHeader'
 import { notify } from './utils/helpers'
 import { inRange, sortEvents } from './utils/eventLevels'
@@ -31,6 +30,7 @@ export default class TimeGrid extends Component {
     showMultiDayTimes: PropTypes.bool,
 
     rtl: PropTypes.bool,
+    resizable: PropTypes.bool,
     width: PropTypes.number,
 
     accessors: PropTypes.object.isRequired,
@@ -68,6 +68,10 @@ export default class TimeGrid extends Component {
     this.state = { gutterWidth: undefined, isOverflowing: null }
 
     this.scrollRef = React.createRef()
+    this.contentRef = React.createRef()
+    this._scrollRatio = null
+    this.gutterRef = React.createRef()
+    this.timeIndicatorRef = React.createRef()
   }
 
   UNSAFE_componentWillMount() {
@@ -98,9 +102,9 @@ export default class TimeGrid extends Component {
     const secondsGrid = dates.diff(max, min, 'seconds')
     const secondsPassed = dates.diff(current, min, 'seconds')
 
-    const timeIndicator = this.refs.timeIndicator
+    const timeIndicator = this.timeIndicatorRef.current
     const factor = secondsPassed / secondsGrid
-    const timeGutter = this.gutter
+    const timeGutter = this.gutterRef?.current
 
     if (timeGutter && current >= min && current <= max) {
       if (useDynamicWidthOfTimeIndicator) {
@@ -141,14 +145,19 @@ export default class TimeGrid extends Component {
   }
 
   handleResize = () => {
-    raf.cancel(this.rafHandle)
-    this.rafHandle = raf(this.checkOverflow)
+    animationFrame.cancel(this.rafHandle)
+    this.rafHandle = animationFrame.request(this.checkOverflow)
     this.positionTimeIndicator()
   }
   componentWillUnmount() {
     window.removeEventListener('resize', this.handleResize)
     window.clearTimeout(this._timeIndicatorTimeout)
-    raf.cancel(this.rafHandle)
+
+    animationFrame.cancel(this.rafHandle)
+
+    if (this.measureGutterAnimationFrameRequest) {
+      window.cancelAnimationFrame(this.measureGutterAnimationFrameRequest)
+    }
   }
 
   componentDidUpdate() {
@@ -172,10 +181,6 @@ export default class TimeGrid extends Component {
     ) {
       this.calculateScroll(nextProps)
     }
-  }
-
-  gutterRef = ref => {
-    this.gutter = ref && findDOMNode(ref)
   }
 
   handleSelectAlldayEvent = (...args) => {
@@ -292,6 +297,7 @@ export default class TimeGrid extends Component {
       showMultiDayTimes,
       longPressThreshold,
       resourcesGroupBy,
+      resizable,
     } = this.props
 
     let _resources = Resources(resources, accessors)
@@ -354,9 +360,10 @@ export default class TimeGrid extends Component {
           onDoubleClickEvent={this.props.onDoubleClickEvent}
           onDrillDown={this.props.onDrillDown}
           getDrilldownView={this.props.getDrilldownView}
+          resizable={resizable}
         />
         <div
-          ref="content"
+          ref={this.contentRef}
           className="rbc-time-content"
           onScroll={this.handleScroll}
         >
@@ -373,7 +380,10 @@ export default class TimeGrid extends Component {
             className="rbc-time-gutter"
           />
           {this.renderEvents(range, rangeEvents, getNow(), _resources)}
-          <div ref="timeIndicator" className="rbc-current-time-indicator" />
+          <div
+            ref={this.timeIndicatorRef}
+            className="rbc-current-time-indicator"
+          />
         </div>
       </div>
     )
@@ -385,16 +395,23 @@ export default class TimeGrid extends Component {
   }
 
   measureGutter() {
-    const width = getWidth(this.gutter)
-
-    if (width && this.state.gutterWidth !== width) {
-      this.setState({ gutterWidth: width })
+    if (this.measureGutterAnimationFrameRequest) {
+      window.cancelAnimationFrame(this.measureGutterAnimationFrameRequest)
     }
+    this.measureGutterAnimationFrameRequest = window.requestAnimationFrame(
+      () => {
+        const width = getWidth(this.gutterRef?.current)
+
+        if (width && this.state.gutterWidth !== width) {
+          this.setState({ gutterWidth: width })
+        }
+      }
+    )
   }
 
   applyScroll() {
     if (this._scrollRatio) {
-      const { content } = this.refs
+      const content = this.contentRef.current
       content.scrollTop = content.scrollHeight * this._scrollRatio
       // Only do this once
       this._scrollRatio = null

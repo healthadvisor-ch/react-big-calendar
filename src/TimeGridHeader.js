@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types'
 import cn from 'classnames'
-import scrollbarSize from 'dom-helpers/util/scrollbarSize'
+import scrollbarSize from 'dom-helpers/scrollbarSize'
 import React from 'react'
 
 import dates from './utils/dates'

@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types'
 import React from 'react'
-import { findDOMNode } from 'react-dom'
 import cn from 'classnames'
 
 import dates from './utils/dates'
@@ -37,6 +36,7 @@ class BackgroundCells extends React.Component {
     this.state = {
       selecting: false,
     }
+    this.containerRef = React.createRef()
   }
 
   componentDidMount() {
@@ -67,7 +67,7 @@ class BackgroundCells extends React.Component {
     let current = getNow()
 
     return (
-      <div className="rbc-row-bg">
+      <div className="rbc-row-bg" ref={this.containerRef}>
         {range.map((date, index) => {
           let selected = selecting && index >= startIdx && index <= endIdx
           const { className, style } = getters.dayProp(date, resourceId)
@@ -94,13 +94,13 @@ class BackgroundCells extends React.Component {
   }
 
   _selectable() {
-    let node = findDOMNode(this)
+    let node = this.containerRef.current
     let selector = (this._selector = new Selection(this.props.container, {
       longPressThreshold: this.props.longPressThreshold,
     }))
 
     let selectorClicksHandler = (point, actionType) => {
-      if (!isEvent(findDOMNode(this), point)) {
+      if (!isEvent(node, point)) {
         let rowBox = getBoundsForNode(node)
         let { range, rtl } = this.props
 
@@ -151,7 +151,7 @@ class BackgroundCells extends React.Component {
     selector.on('beforeSelect', box => {
       if (this.props.selectable !== 'ignoreEvents') return
 
-      return !isEvent(findDOMNode(this), box)
+      return !isEvent(this.containerRef.current, box)
     })
 
     selector.on('click', point => selectorClicksHandler(point, 'click'))

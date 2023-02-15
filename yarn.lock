@@ -1026,7 +1026,7 @@
     "core-js" "^2.6.12"
     "regenerator-runtime" "^0.13.4"
 
-"@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2", "@babel/runtime@^7.17.8", "@babel/runtime@^7.6.3", "@babel/runtime@^7.7.2", "@babel/runtime@^7.8.4":
+"@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2", "@babel/runtime@^7.17.8", "@babel/runtime@^7.6.3", "@babel/runtime@^7.7.2", "@babel/runtime@^7.8.4", "@babel/runtime@^7.8.7":
   "integrity" "sha512-38Y8f7YUhce/K7RMwTp7m0uCumpv9hZkitCbBClqQIow1qSbCvGkcegKOXpEWCQLfWmevgRiWokZ1GkpfhbZug=="
   "resolved" "https://registry.npmjs.org/@babel/runtime/-/runtime-7.18.3.tgz"
   "version" "7.18.3"
@@ -1065,13 +1065,6 @@
   dependencies:
     "@babel/helper-validator-identifier" "^7.16.7"
     "to-fast-properties" "^2.0.0"
-
-"@healthadvisor/react-dnd-html5-mixed-backend@^2.1.0":
-  "integrity" "sha512-5Ub+/dQMtn/GS3FjAfwMrt3HaBId5o0SIVtZz77iccD39x/+LHCdqTl9lGyLURl7Z/BXe5HVQsGg+gr87puwyg=="
-  "resolved" "https://registry.npmjs.org/@healthadvisor/react-dnd-html5-mixed-backend/-/react-dnd-html5-mixed-backend-2.1.0.tgz"
-  "version" "2.1.0"
-  dependencies:
-    "lodash" "^4.17.21"
 
 "@hutson/parse-repository-url@^3.0.0":
   "integrity" "sha512-H9XAx3hc0BQHY6l+IFSWHDySypcXsvsuLhgYLUGywmJ5pswRVQJUHpOsobnLYp2ZUaUlKiKDrgWWhosOwAEM8Q=="
@@ -5533,12 +5526,34 @@
   dependencies:
     "utila" "~0.4"
 
-"dom-helpers@^2.3.0 || ^3.0.0", "dom-helpers@^3.2.0", "dom-helpers@^3.2.1", "dom-helpers@^3.4.0":
+"dom-helpers@^3.2.0":
   "integrity" "sha512-LnuPJ+dwqKDIyotW1VzmOZ5TONUN7CwkCR5hrgawTUbkBGYdeoNLZo6nNfGkCrjtE1nXXaj7iMMpDa8/d9WoIA=="
   "resolved" "https://registry.npmjs.org/dom-helpers/-/dom-helpers-3.4.0.tgz"
   "version" "3.4.0"
   dependencies:
     "@babel/runtime" "^7.1.2"
+
+"dom-helpers@^3.2.1":
+  "integrity" "sha512-LnuPJ+dwqKDIyotW1VzmOZ5TONUN7CwkCR5hrgawTUbkBGYdeoNLZo6nNfGkCrjtE1nXXaj7iMMpDa8/d9WoIA=="
+  "resolved" "https://registry.npmjs.org/dom-helpers/-/dom-helpers-3.4.0.tgz"
+  "version" "3.4.0"
+  dependencies:
+    "@babel/runtime" "^7.1.2"
+
+"dom-helpers@^3.4.0":
+  "integrity" "sha512-LnuPJ+dwqKDIyotW1VzmOZ5TONUN7CwkCR5hrgawTUbkBGYdeoNLZo6nNfGkCrjtE1nXXaj7iMMpDa8/d9WoIA=="
+  "resolved" "https://registry.npmjs.org/dom-helpers/-/dom-helpers-3.4.0.tgz"
+  "version" "3.4.0"
+  dependencies:
+    "@babel/runtime" "^7.1.2"
+
+"dom-helpers@^5.2.1":
+  "integrity" "sha512-nRCa7CK3VTrM2NmGkIy4cbK7IZlgBE/PYMn55rrXefr5xXDP0LdtfPnblFDoVdcAfslJ7or6iqAUnx0CCGIWQA=="
+  "resolved" "https://registry.npmjs.org/dom-helpers/-/dom-helpers-5.2.1.tgz"
+  "version" "5.2.1"
+  dependencies:
+    "@babel/runtime" "^7.8.7"
+    "csstype" "^3.0.2"
 
 "dom-serializer@^1.0.1":
   "integrity" "sha512-VHwB3KfrcOOkelEG2ZOfxqLZdfkil8PtJi4P8N2MMXucZq2yLp75ClViUlOVwyoHEDjYU433Aq+5zWP61+RGag=="
@@ -12195,7 +12210,7 @@
     "strip-ansi" "3.0.1"
     "text-table" "0.2.0"
 
-"react-dnd@^2.0.0", "react-dnd@^2.6.0":
+"react-dnd@^2.6.0":
   "integrity" "sha1-f6JWds+CfViokSk+PBq1naACVFo="
   "resolved" "https://registry.npmjs.org/react-dnd/-/react-dnd-2.6.0.tgz"
   "version" "2.6.0"
