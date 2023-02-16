@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import PropTypes from 'prop-types'
 import React from 'react'
 import EventRow from '../../EventRow'
@@ -59,12 +60,15 @@ class WeekWrapper extends React.Component {
     this.setState({ segment })
   }
 
-  handleMove = (point, bounds) => {
+  handleMove = (point, bounds, draggedEvent) => {
     if (!pointInBox(bounds, point)) return this.reset()
-    const { event } = this.context.draggable.dragAndDropAction
+    const event = this.context.draggable.dragAndDropAction.event || draggedEvent
     const { accessors, slotMetrics, rtl, localizer } = this.props
 
-    if (!event) return
+    if (!event) {
+      console.log('WeekWrapper - handle move - missing event !!!!')
+      return
+    }
 
     const slot = getSlotAtX(bounds, point.x, rtl, slotMetrics.slots)
 
@@ -78,8 +82,26 @@ class WeekWrapper extends React.Component {
     this.update(event, start, end)
   }
 
+  handleDropFromOutside = (point, bounds) => {
+    if (!this.context.draggable.onDropFromOutside) return
+    const { slotMetrics, rtl, localizer } = this.props
+
+    const slot = getSlotAtX(bounds, point.x, rtl, slotMetrics.slots)
+    const start = slotMetrics.getDateForSlot(slot)
+
+    this.context.draggable.onDropFromOutside({
+      start,
+      end: localizer.add(start, 1, 'day'),
+      allDay: false,
+    })
+  }
+
+  handleDragOverFromOutside = (point, node) => {
+    if (!this.context.draggable.dragFromOutsideItem) return
+    this.handleMove(point, node, this.context.draggable.dragFromOutsideItem())
+  }
+
   handleResize(point, bounds) {
-    // eslint-disable-next-line no-console
     console.log('WeekWrapper - handleResize')
     const { event, direction } = this.context.draggable.dragAndDropAction
     const { accessors, slotMetrics, rtl, localizer } = this.props
@@ -153,7 +175,6 @@ class WeekWrapper extends React.Component {
     selector.on('selecting', box => {
       const bounds = getBoundsForNode(node)
       const { dragAndDropAction } = this.context.draggable
-
       if (dragAndDropAction.action === 'move') this.handleMove(box, bounds)
       if (dragAndDropAction.action === 'resize') this.handleResize(box, bounds)
     })
@@ -169,6 +190,21 @@ class WeekWrapper extends React.Component {
         this.handleInteractionEnd()
       }
     })
+
+    selector.on('dropFromOutside', point => {
+      if (!this.context.draggable.onDropFromOutside) return
+      const bounds = getBoundsForNode(node)
+      if (!pointInBox(bounds, point)) return
+      this.handleDropFromOutside(point, bounds)
+    })
+
+    selector.on('dragOverFromOutside', point => {
+      if (!this.context.draggable.dragFromOutsideItem) return
+      const bounds = getBoundsForNode(node)
+
+      this.handleDragOverFromOutside(point, bounds)
+    })
+
     selector.on('click', () => this.context.draggable.onEnd(null))
 
     selector.on('reset', () => {

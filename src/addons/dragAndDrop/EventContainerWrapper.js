@@ -10,7 +10,6 @@ import Selection, {
 import TimeGridEvent from '../../TimeGridEvent'
 import { dragAccessors, eventTimes, pointInColumn } from './common'
 import NoopWrapper from '../../NoopWrapper'
-const propTypes = {}
 
 class EventContainerWrapper extends React.Component {
   static propTypes = {
@@ -113,6 +112,22 @@ class EventContainerWrapper extends React.Component {
     this.update(event, newRange)
   }
 
+  handleDropFromOutside = (point, boundaryBox) => {
+    const { slotMetrics, resource } = this.props
+
+    let start = slotMetrics.closestSlotFromPoint(
+      { y: point.y, x: point.x },
+      boundaryBox
+    )
+
+    this.context.draggable.onDropFromOutside({
+      start,
+      end: slotMetrics.nextSlot(start),
+      allDay: false,
+      resource,
+    })
+  }
+
   _selectable = () => {
     let wrapper = this.ref.current
     let node = wrapper.children[0]
@@ -151,6 +166,19 @@ class EventContainerWrapper extends React.Component {
       if (dragAndDropAction.action === 'resize') this.handleResize(box, bounds)
     })
 
+    selector.on('dropFromOutside', point => {
+      if (!this.context.draggable.onDropFromOutside) return
+      const bounds = getBoundsForNode(node)
+      if (!pointInColumn(bounds, point)) return
+      this.handleDropFromOutside(point, bounds)
+    })
+
+    selector.on('dragOver', point => {
+      if (!this.context.draggable.dragFromOutsideItem) return
+      const bounds = getBoundsForNode(node)
+      this.handleDropFromOutside(point, bounds)
+    })
+
     selector.on('selectStart', () => {
       console.log('ECW - on  select start')
       isBeingDragged = true
@@ -176,7 +204,6 @@ class EventContainerWrapper extends React.Component {
       if (isBeingDragged) this.reset()
       this.context.draggable.onEnd(null)
     })
-
     selector.on('reset', () => {
       console.log('ECW - on reset')
       this.reset()
@@ -257,7 +284,5 @@ class EventContainerWrapper extends React.Component {
     return <div ref={this.ref}>{this.renderContent()}</div>
   }
 }
-
-EventContainerWrapper.propTypes = propTypes
 
 export default EventContainerWrapper

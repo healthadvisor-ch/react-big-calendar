@@ -19,6 +19,7 @@ class EventWrapper extends React.Component {
     continuesAfter: PropTypes.bool,
     isDragging: PropTypes.bool,
     isResizing: PropTypes.bool,
+    resizable: PropTypes.bool,
   }
 
   handleResizeUp = e => {
@@ -45,7 +46,12 @@ class EventWrapper extends React.Component {
   }
   handleStartDragging = e => {
     console.log('EW - handleStartDragging')
-    this.handleBeginAction(e, 'move')
+    if (e.button !== 0) return
+    // hack: because of the way the anchors are arranged in the DOM, resize
+    // anchor events will bubble up to the move anchor listener. Don't start
+    // move operations when we're on a resize anchor.
+    const isResizeHandle = e.target.className.includes('rbc-addons-dnd-resize')
+    if (!isResizeHandle) this.handleBeginAction(e, 'move')
   }
 
   handleBeginAction = (e, action, direction) => {
@@ -67,6 +73,7 @@ class EventWrapper extends React.Component {
     console.log(
       `EW - nativeEvent: ${nativeEvent} interacting: ${interacting} touchEndThen ${touchEndThenMouseDown}`
     )
+    // TODO is this still needed ?????
     if ((nativeEvent === 'touchend' && !interacting) || touchEndThenMouseDown) {
       console.log(`on end - plum`)
       this.context.draggable.onEnd(null)
@@ -86,7 +93,13 @@ class EventWrapper extends React.Component {
   }
 
   render() {
-    const { event, type, continuesPrior, continuesAfter } = this.props
+    const {
+      event,
+      type,
+      continuesPrior,
+      continuesAfter,
+      resizable,
+    } = this.props
 
     let { children } = this.props
 
@@ -95,7 +108,8 @@ class EventWrapper extends React.Component {
         className: cn(children.props.className, 'rbc-addons-dnd-drag-preview'),
       })
 
-    const { draggableAccessor, resizableAccessor, draggable } = this.context
+    const { draggable } = this.context
+    const { draggableAccessor, resizableAccessor } = draggable
 
     const isDraggable = draggableAccessor
       ? !!get(event, draggableAccessor)
@@ -105,9 +119,6 @@ class EventWrapper extends React.Component {
     if (!isDraggable) {
       return children
     }
-
-    let StartAnchor = null
-    let EndAnchor = null
 
     /*
      * The resizability of events depends on whether they are
@@ -128,19 +139,10 @@ class EventWrapper extends React.Component {
      * in the middle of events when showMultiDay is true, and to
      * events at the edges of the calendar's min/max location.
      */
-    const isResizable = resizableAccessor
-      ? !!get(event, resizableAccessor)
-      : true
+    const isResizable =
+      resizable && (resizableAccessor ? !!get(event, resizableAccessor) : true)
 
-    if (isResizable) {
-      if (type === 'date') {
-        StartAnchor = !continuesPrior && this.renderAnchor('Left')
-        EndAnchor = !continuesAfter && this.renderAnchor('Right')
-      } else {
-        StartAnchor = !continuesPrior && this.renderAnchor('Up')
-        EndAnchor = !continuesAfter && this.renderAnchor('Down')
-      }
-
+    if (isResizable || isDraggable) {
       /*
        * props.children is the singular <Event> component.
        * BigCalendar positions the Event abolutely and we
@@ -152,16 +154,33 @@ class EventWrapper extends React.Component {
       const newProps = {
         onMouseDown: this.handleStartDragging,
         onTouchStart: this.handleStartDragging,
-        onTouchEnd: this.handleStartDragging,
-        // replace original event child with anchor-embellished child
+        // TODO this is most likely not needed !!!
+        onTouchEnd: e => {
+          console.log('onTouchEnd !!! is it used?')
+          this.handleStartDragging(e)
+        },
+      }
 
-        children: (
+      if (isResizable) {
+        // replace original event child with anchor-embellished child
+        let StartAnchor = null
+        let EndAnchor = null
+
+        if (type === 'date') {
+          StartAnchor = !continuesPrior && this.renderAnchor('Left')
+          EndAnchor = !continuesAfter && this.renderAnchor('Right')
+        } else {
+          StartAnchor = !continuesPrior && this.renderAnchor('Up')
+          EndAnchor = !continuesAfter && this.renderAnchor('Down')
+        }
+
+        newProps.children = (
           <div className="rbc-addons-dnd-resizable">
             {StartAnchor}
             {children.props.children}
             {EndAnchor}
           </div>
-        ),
+        )
       }
 
       if (

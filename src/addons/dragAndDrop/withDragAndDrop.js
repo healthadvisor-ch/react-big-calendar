@@ -61,6 +61,9 @@ export default function withDragAndDrop(Calendar) {
       onEventActionStart: PropTypes.func,
       onDragStart: PropTypes.func,
       onDragOver: PropTypes.func,
+      onDropFromOutside: PropTypes.func,
+
+      dragFromOutsideItem: PropTypes.func,
 
       draggableAccessor: accessor,
       resizableAccessor: accessor,
@@ -80,10 +83,6 @@ export default function withDragAndDrop(Calendar) {
       resizable: true,
     }
 
-    static contextTypes = {
-      dragDropManager: PropTypes.object,
-    }
-
     constructor(...args) {
       super(...args)
 
@@ -98,11 +97,12 @@ export default function withDragAndDrop(Calendar) {
       this.state = { interacting: false }
     }
 
-    shouldComponentUpdate(nextProps, nextState) {
-      return (
-        !_isEqual(this.props, nextProps) || !_isEqual(this.state, nextState)
-      )
-    }
+    // TODO is it used?
+    // shouldComponentUpdate(nextProps, nextState) {
+    //   return (
+    //     !_isEqual(this.props, nextProps) || !_isEqual(this.state, nextState)
+    //   )
+    // }
 
     getDnDContextValue() {
       return {
@@ -110,6 +110,8 @@ export default function withDragAndDrop(Calendar) {
           onStart: this.handleInteractionStart,
           onEnd: this.handleInteractionEnd,
           onBeginAction: this.handleBeginAction,
+          onDropFromOutside: this.props.onDropFromOutside,
+          dragFromOutsideItem: this.props.dragFromOutsideItem,
           draggableAccessor: this.props.draggableAccessor,
           resizableAccessor: this.props.resizableAccessor,
           dragAndDropAction: this.state,
@@ -129,6 +131,8 @@ export default function withDragAndDrop(Calendar) {
         action,
         direction,
       })
+      const { onDragStart } = this.props
+      if (onDragStart) onDragStart({ event, action, direction })
     }
 
     handleInteractionStart = () => {
@@ -168,6 +172,13 @@ export default function withDragAndDrop(Calendar) {
       delete props.onEventResize
       props.selectable = selectable ? 'ignoreEvents' : false
 
+      const elementPropsWithDropFromOutside = this.props.onDropFromOutside
+        ? {
+            ...elementProps,
+            onDragOver: this.props.onDragOver || this.defaultOnDragOver,
+          }
+        : elementProps
+
       props.className = cn(
         props.className,
         'rbc-addons-dnd',
@@ -179,7 +190,7 @@ export default function withDragAndDrop(Calendar) {
         <DnDContext.Provider value={context}>
           <Calendar
             {...props}
-            elementProps={elementProps}
+            elementProps={elementPropsWithDropFromOutside}
             components={this.components}
           />
         </DnDContext.Provider>
