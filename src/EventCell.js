@@ -23,6 +23,7 @@ class EventCell extends React.Component {
       slotEnd,
       ...props
     } = this.props
+    delete props.resizable
 
     let title = accessors.title(event)
     let tooltip = accessors.tooltip(event)

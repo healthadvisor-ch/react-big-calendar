@@ -39,11 +39,15 @@ const clickTolerance = 5
 const clickInterval = 250
 
 class Selection {
-  constructor(node, { global = false, longPressThreshold = 250 } = {}) {
+  constructor(
+    node,
+    { global = false, longPressThreshold = 250, validContainers = [] } = {}
+  ) {
     this.isDetached = false
     this.container = node
     this.globalMouse = !node || global
     this.longPressThreshold = longPressThreshold
+    this.validContainers = validContainers
 
     this._listeners = Object.create(null)
 
@@ -51,6 +55,10 @@ class Selection {
     this._handleMoveEvent = this._handleMoveEvent.bind(this)
     this._handleTerminatingEvent = this._handleTerminatingEvent.bind(this)
     this._keyListener = this._keyListener.bind(this)
+    this._dropFromOutsideListener = this._dropFromOutsideListener.bind(this)
+    this._dragOverFromOutsideListener = this._dragOverFromOutsideListener.bind(
+      this
+    )
 
     // Fixes an iOS 10 bug where scrolling could not be prevented on the window.
     // https://github.com/metafizzy/flickity/issues/457#issuecomment-254501356
@@ -61,6 +69,14 @@ class Selection {
     )
     this._removeKeyDownListener = addEventListener('keydown', this._keyListener)
     this._removeKeyUpListener = addEventListener('keyup', this._keyListener)
+    this._removeDropFromOutsideListener = addEventListener(
+      'drop',
+      this._dropFromOutsideListener
+    )
+    this._removeDragOverFromOutsideListener = addEventListener(
+      'dragover',
+      this._dragOverFromOutsideListener
+    )
     this._addInitialEventListener()
   }
 
@@ -95,6 +111,9 @@ class Selection {
     this._removeMoveListener && this._removeMoveListener()
     this._removeKeyUpListener && this._removeKeyUpListener()
     this._removeKeyDownListener && this._removeKeyDownListener()
+    this._removeDropFromOutsideListener && this._removeDropFromOutsideListener()
+    this._removeDragOverFromOutsideListener &&
+      this._removeDragOverFromOutsideListener()
   }
 
   isSelected(node) {
@@ -118,42 +137,43 @@ class Selection {
   // without moving their finger for 250ms.
   _addLongPressListener(handler, initialEvent) {
     let timer = null
-    let touchMoveListener = null
-    let touchEndListener = null
+    let removeTouchMoveListener = null
+    let removeTouchEndListener = null
     const handleTouchStart = initialEvent => {
       timer = setTimeout(() => {
         cleanup()
         handler(initialEvent)
       }, this.longPressThreshold)
-      touchMoveListener = addEventListener('touchmove', () => cleanup())
-      touchEndListener = addEventListener('touchend', () => cleanup())
+      removeTouchMoveListener = addEventListener('touchmove', () => cleanup())
+      removeTouchEndListener = addEventListener('touchend', () => cleanup())
     }
-    const touchStartListener = addEventListener('touchstart', handleTouchStart)
+    const removeTouchStartListener = addEventListener(
+      'touchstart',
+      handleTouchStart
+    )
     const cleanup = () => {
       if (timer) {
         clearTimeout(timer)
       }
-      if (touchMoveListener) {
-        touchMoveListener.remove()
+      if (removeTouchMoveListener) {
+        removeTouchMoveListener()
       }
-      if (touchEndListener) {
-        touchEndListener.remove()
+      if (removeTouchEndListener) {
+        removeTouchEndListener()
       }
 
       timer = null
-      touchMoveListener = null
-      touchEndListener = null
+      removeTouchMoveListener = null
+      removeTouchEndListener = null
     }
 
     if (initialEvent) {
       handleTouchStart(initialEvent)
     }
 
-    return {
-      remove() {
-        cleanup()
-        touchStartListener.remove()
-      },
+    return () => {
+      cleanup()
+      removeTouchStartListener()
     }
   }
 
@@ -182,6 +202,32 @@ class Selection {
     }
   }
 
+  _dropFromOutsideListener(e) {
+    const { pageX, pageY, clientX, clientY } = getEventCoordinates(e)
+
+    this.emit('dropFromOutside', {
+      x: pageX,
+      y: pageY,
+      clientX: clientX,
+      clientY: clientY,
+    })
+
+    e.preventDefault()
+  }
+
+  _dragOverFromOutsideListener(e) {
+    const { pageX, pageY, clientX, clientY } = getEventCoordinates(e)
+
+    this.emit('dragOverFromOutside', {
+      x: pageX,
+      y: pageY,
+      clientX: clientX,
+      clientY: clientY,
+    })
+
+    e.preventDefault()
+  }
+
   _handleInitialEvent(e) {
     if (this.isDetached) return
 
@@ -190,6 +236,11 @@ class Selection {
       collides,
       offsetData
 
+    console.log(
+      `selection - handle initial event! e.which: ${e.which} e.button: ${
+        e.button
+      }, isOver..: ${!isOverContainer(node, clientX, clientY)}`
+    )
     // Right clicks
     if (
       e.which === 3 ||
@@ -213,6 +264,9 @@ class Selection {
         { top: pageY, left: pageX }
       )
 
+      console.log(
+        `not a global mouse .. whatever it is .. collides: ${collides}`
+      )
       if (!collides) return
     }
 
@@ -226,6 +280,7 @@ class Selection {
         clientY,
       })
     )
+    console.log(`selection - beforeSelect result: ${result}`)
 
     if (result === false) return
     console.log(
@@ -259,8 +314,24 @@ class Selection {
     }
   }
 
+  // Check whether provided event target element
+  // - is contained within a valid container
+  _isWithinValidContainer(e) {
+    const eventTarget = e.target
+    const containers = this.validContainers
+
+    if (!containers || !containers.length || !eventTarget) {
+      return true
+    }
+
+    return containers.some(target => !!eventTarget.closest(target))
+  }
+
   _handleTerminatingEvent(e) {
-    console.log('sel - handleTerminatingEvent')
+    console.log(
+      `sel - handleTerminatingEvent, initial event data: ${!!this
+        ._initialEventData}`
+    )
     const { pageX, pageY } = getEventCoordinates(e)
 
     this.selecting = false
@@ -271,14 +342,15 @@ class Selection {
     if (!this._initialEventData) return
 
     let inRoot = !this.container || contains(this.container(), e.target)
+    let isWithinValidContainer = this._isWithinValidContainer(e)
     let bounds = this._selectRect
     let click = this.isClick(pageX, pageY)
 
     this._initialEventData = null
 
-    // if (click && !inRoot) {
-    //   return this.emit('reset')
-    // }
+    if (e.key === 'Escape' || !isWithinValidContainer) {
+      return this.emit('reset')
+    }
 
     if (click && inRoot) {
       return this._handleClickEvent(e)
