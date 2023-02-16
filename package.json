@@ -1,6 +1,6 @@
 {
   "name": "@healthadvisor/react-big-calendar",
-  "version": "1.0.3-test-5",
+  "version": "1.0.3-test-8",
   "description": "Calendar! with events",
   "author": "Jason Quense <monastic.panic@gmail.com>",
   "repository": "intljusticemission/react-big-calendar",
@@ -105,7 +105,7 @@
   "dependencies": {
     "@babel/runtime": "^7.17.8",
     "classnames": "^2.3.1",
-    "date-arithmetic": "^3.0.0",
+    "date-arithmetic": "^4.1.0",
     "dom-helpers": "^5.2.1",
     "invariant": "^2.2.4",
     "lodash": "^4.17.21",

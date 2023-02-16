@@ -2,13 +2,14 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import cn from 'classnames'
+import _isEqual from 'lodash/isEqual'
 
 import { accessor } from '../../utils/propTypes'
 import EventWrapper from './EventWrapper'
 import EventContainerWrapper from './EventContainerWrapper'
 import WeekWrapper from './WeekWrapper'
 import { mergeComponents } from './common'
-import _ from 'lodash'
+import { DnDContext } from './DnDContext'
 
 /**
  * Creates a higher-order component (HOC) supporting drag & drop and optionally resizing
@@ -53,9 +54,13 @@ import _ from 'lodash'
 export default function withDragAndDrop(Calendar) {
   class DragAndDropCalendar extends React.Component {
     static propTypes = {
+      ...Calendar.propTypes,
+
       onEventDrop: PropTypes.func,
       onEventResize: PropTypes.func,
       onEventActionStart: PropTypes.func,
+      onDragStart: PropTypes.func,
+      onDragOver: PropTypes.func,
 
       draggableAccessor: accessor,
       resizableAccessor: accessor,
@@ -67,26 +72,16 @@ export default function withDragAndDrop(Calendar) {
     }
 
     static defaultProps = {
-      // TODO: pick these up from Calendar.defaultProps
+      ...Calendar.defaultProps,
       components: {},
       draggableAccessor: null,
       resizableAccessor: null,
       step: 30,
+      resizable: true,
     }
 
     static contextTypes = {
       dragDropManager: PropTypes.object,
-    }
-
-    static childContextTypes = {
-      draggable: PropTypes.shape({
-        onStart: PropTypes.func,
-        onEnd: PropTypes.func,
-        onBeginAction: PropTypes.func,
-        draggableAccessor: accessor,
-        resizableAccessor: accessor,
-        dragAndDropAction: PropTypes.object,
-      }),
     }
 
     constructor(...args) {
@@ -100,16 +95,16 @@ export default function withDragAndDrop(Calendar) {
         weekWrapper: WeekWrapper,
       })
 
-      this.state = {}
+      this.state = { interacting: false }
     }
 
     shouldComponentUpdate(nextProps, nextState) {
       return (
-        !_.isEqual(this.props, nextProps) || !_.isEqual(this.state, nextState)
+        !_isEqual(this.props, nextProps) || !_isEqual(this.state, nextState)
       )
     }
 
-    getChildContext() {
+    getDnDContextValue() {
       return {
         draggable: {
           onStart: this.handleInteractionStart,
@@ -120,6 +115,10 @@ export default function withDragAndDrop(Calendar) {
           dragAndDropAction: this.state,
         },
       }
+    }
+
+    defaultOnDragOver = event => {
+      event.preventDefault()
     }
 
     handleBeginAction = (event, action, direction, nativeEvent) => {
@@ -134,12 +133,13 @@ export default function withDragAndDrop(Calendar) {
 
     handleInteractionStart = () => {
       console.log(`withDnD - handleInteractionStart!`)
-      this.setState({ interacting: true })
+      if (this.state.interacting === false) this.setState({ interacting: true })
     }
 
     handleInteractionEnd = interactionInfo => {
       console.log('withDnD - handleInteractionEnd')
       const { action, event } = this.state
+      if (!action) return
 
       this.setState({
         action: null,
@@ -155,16 +155,17 @@ export default function withDragAndDrop(Calendar) {
       if (interactionInfo == null) return
 
       interactionInfo.event = event
-      if (action === 'move') this.props.onEventDrop(interactionInfo)
-      if (action === 'resize') this.props.onEventResize(interactionInfo)
+      const { onEventDrop, onEventResize } = this.props
+      if (action === 'move' && onEventDrop) onEventDrop(interactionInfo)
+      if (action === 'resize' && onEventResize) onEventResize(interactionInfo)
     }
 
     render() {
-      const { selectable, ...props } = this.props
+      const { selectable, elementProps, ...props } = this.props
       const { interacting } = this.state
+
       delete props.onEventDrop
       delete props.onEventResize
-
       props.selectable = selectable ? 'ignoreEvents' : false
 
       props.className = cn(
@@ -173,7 +174,16 @@ export default function withDragAndDrop(Calendar) {
         !!interacting && 'rbc-addons-dnd-is-dragging'
       )
 
-      return <Calendar {...props} components={this.components} />
+      const context = this.getDnDContextValue()
+      return (
+        <DnDContext.Provider value={context}>
+          <Calendar
+            {...props}
+            elementProps={elementProps}
+            components={this.components}
+          />
+        </DnDContext.Provider>
+      )
     }
   }
 

@@ -3,36 +3,9 @@ import React from 'react'
 import getOffset from 'dom-helpers/offset'
 import getScrollTop from 'dom-helpers/scrollTop'
 import getScrollLeft from 'dom-helpers/scrollLeft'
-import dates from './utils/dates'
 
 import EventCell from './EventCell'
 import { isSelected } from './utils/selection'
-
-const propTypes = {
-  position: PropTypes.object,
-  popupOffset: PropTypes.oneOfType([
-    PropTypes.number,
-    PropTypes.shape({
-      x: PropTypes.number,
-      y: PropTypes.number,
-    }),
-  ]),
-  events: PropTypes.array,
-  selected: PropTypes.object,
-
-  accessors: PropTypes.object.isRequired,
-  components: PropTypes.object.isRequired,
-  getters: PropTypes.object.isRequired,
-  localizer: PropTypes.object.isRequired,
-  onSelect: PropTypes.func,
-  onDoubleClick: PropTypes.func,
-  slotStart: PropTypes.number,
-  slotEnd: PropTypes.number,
-  popperRef: PropTypes.oneOfType([
-    PropTypes.func,
-    PropTypes.shape({ current: PropTypes.Element }),
-  ]),
-}
 
 class Popup extends React.Component {
   componentDidMount() {
@@ -81,7 +54,11 @@ class Popup extends React.Component {
     }
 
     return (
-      <div ref={popperRef} style={style} className="rbc-overlay">
+      <div
+        style={{ ...this.props.style, ...style }}
+        className="rbc-overlay"
+        ref={popperRef}
+      >
         <div className="rbc-overlay-header">
           {localizer.format(slotStart, 'dayHeaderFormat')}
         </div>
@@ -89,15 +66,29 @@ class Popup extends React.Component {
           <EventCell
             key={idx}
             type="popup"
+            localizer={localizer}
             event={event}
             getters={getters}
             onSelect={onSelect}
             accessors={accessors}
             components={components}
             onDoubleClick={onDoubleClick}
-            continuesPrior={dates.lt(accessors.end(event), slotStart, 'day')}
-            continuesAfter={dates.gte(accessors.start(event), slotEnd, 'day')}
+            continuesPrior={localizer.lt(
+              accessors.end(event),
+              slotStart,
+              'day'
+            )}
+            continuesAfter={localizer.gte(
+              accessors.start(event),
+              slotEnd,
+              'day'
+            )}
+            slotStart={slotStart}
+            slotEnd={slotEnd}
             selected={isSelected(event, selected)}
+            draggable={true}
+            onDragStart={() => this.props.handleDragStart(event)}
+            onDragEnd={() => this.props.show()}
           />
         ))}
       </div>
@@ -105,7 +96,33 @@ class Popup extends React.Component {
   }
 }
 
-Popup.propTypes = propTypes
+Popup.propTypes = {
+  position: PropTypes.object,
+  popupOffset: PropTypes.oneOfType([
+    PropTypes.number,
+    PropTypes.shape({
+      x: PropTypes.number,
+      y: PropTypes.number,
+    }),
+  ]),
+  events: PropTypes.array,
+  selected: PropTypes.object,
+
+  accessors: PropTypes.object.isRequired,
+  components: PropTypes.object.isRequired,
+  getters: PropTypes.object.isRequired,
+  localizer: PropTypes.object.isRequired,
+  onSelect: PropTypes.func,
+  onDoubleClick: PropTypes.func,
+  handleDragStart: PropTypes.func,
+  show: PropTypes.func,
+  slotStart: PropTypes.number,
+  slotEnd: PropTypes.number,
+  popperRef: PropTypes.oneOfType([
+    PropTypes.func,
+    PropTypes.shape({ current: PropTypes.Element }),
+  ]),
+}
 
 /**
  * The Overlay component, of react-overlays, creates a ref that is passed to the Popup, and

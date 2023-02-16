@@ -3,7 +3,6 @@ import cn from 'classnames'
 import scrollbarSize from 'dom-helpers/scrollbarSize'
 import React from 'react'
 
-import dates from './utils/dates'
 import DateContentRow from './DateContentRow'
 import Header from './Header'
 import ResourceHeader from './ResourceHeader'
@@ -20,6 +19,7 @@ class TimeGridHeader extends React.Component {
     isOverflowing: PropTypes.bool,
 
     rtl: PropTypes.bool,
+    resizable: PropTypes.bool,
     width: PropTypes.number,
 
     localizer: PropTypes.object.isRequired,
@@ -75,16 +75,17 @@ class TimeGridHeader extends React.Component {
         className={cn(
           'rbc-header',
           className,
-          dates.eq(date, today, 'day') && 'rbc-today'
+          localizer.isSameDate(date, today) && 'rbc-today'
         )}
       >
         {drilldownView ? (
-          <a
-            href="#"
+          <button
+            type="button"
+            className="rbc-button-link"
             onClick={e => this.handleHeaderClick(date, drilldownView, e)}
           >
             {header}
-          </a>
+          </button>
         ) : (
           <span>{header}</span>
         )}
@@ -103,6 +104,7 @@ class TimeGridHeader extends React.Component {
       localizer,
       accessors,
       components,
+      resizable,
     } = this.props
 
     const resourceId = accessors.resourceId(resource)
@@ -130,6 +132,7 @@ class TimeGridHeader extends React.Component {
         onDoubleClick={this.props.onDoubleClickEvent}
         onSelectSlot={this.props.onSelectSlot}
         longPressThreshold={this.props.longPressThreshold}
+        resizable={resizable}
       />
     )
   }
@@ -143,6 +146,7 @@ class TimeGridHeader extends React.Component {
       components,
       getters,
       localizer,
+      resizable,
     } = this.props
 
     return (
@@ -165,12 +169,13 @@ class TimeGridHeader extends React.Component {
         onDoubleClick={this.props.onDoubleClickEvent}
         onSelectSlot={this.props.onSelectSlot}
         longPressThreshold={this.props.longPressThreshold}
+        resizable={resizable}
       />
     )
   }
 
   getEventsForDay(events, date) {
-    const { accessors } = this.props
+    const { accessors, localizer } = this.props
 
     const allDayEvents = []
 
@@ -178,13 +183,13 @@ class TimeGridHeader extends React.Component {
     end.setSeconds(end.getSeconds() + 23 * 2600 + 59 * 60 + 59)
 
     events.forEach(event => {
-      if (inRange(event, date, end, accessors)) {
+      if (inRange(event, date, end, accessors, localizer)) {
         let eStart = accessors.start(event),
           eEnd = accessors.end(event)
 
         if (
           accessors.allDay(event) ||
-          (dates.isJustDate(eStart) && dates.isJustDate(eEnd))
+          localizer.startAndEndAreDateOnly(eStart, eEnd)
         ) {
           allDayEvents.push(event)
         }

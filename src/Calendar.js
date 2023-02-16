@@ -343,6 +343,15 @@ class Calendar extends React.Component {
     onSelecting: PropTypes.func,
 
     /**
+     * Callback fired when a +{count} more is clicked
+     *
+     * ```js
+     * (events: Object, date: Date) => any
+     * ```
+     */
+    onShowMore: PropTypes.func,
+
+    /**
      * The selected event, if any.
      */
     selected: PropTypes.object,
@@ -379,6 +388,13 @@ class Calendar extends React.Component {
      ['month', 'week', 'day', 'agenda']
      */
     views: componentViews,
+
+    /**
+     * Determines whether the drill down should occur when clicking on the "+_x_ more" link.
+     * If `popup` is false, and `doShowMoreDrillDown` is true, the drill down will occur as usual.
+     * If `popup` is false, and `doShowMoreDrillDown` is false, the drill down will not occur and the `onShowMore` function will trigger.
+     */
+    doShowMoreDrillDown: PropTypes.bool,
 
     /**
      * The string name of the destination view for drill-down actions, such
@@ -854,6 +870,8 @@ class Calendar extends React.Component {
       getNow,
       length,
       showMultiDayTimes,
+      onShowMore,
+      doShowMoreDrillDown,
       components: _0,
       formats: _1,
       messages: _2,
@@ -910,17 +928,19 @@ class Calendar extends React.Component {
           onSelectEvent={this.handleSelectEvent}
           onDoubleClickEvent={this.handleDoubleClickEvent}
           onSelectSlot={this.handleSelectSlot}
-          onShowMore={this._showMore}
+          onShowMore={onShowMore}
+          doShowMoreDrillDown={doShowMoreDrillDown}
         />
       </div>
     )
   }
 
-  handleRangeChange = (date, view) => {
-    let { onRangeChange } = this.props
+  handleRangeChange = (date, viewComponent, view) => {
+    let { onRangeChange, localizer } = this.props
+
     if (onRangeChange) {
-      if (view.range) {
-        onRangeChange(view.range(date, {}))
+      if (viewComponent.range) {
+        onRangeChange(viewComponent.range(date, { localizer }), view)
       } else {
         warning(true, 'onRangeChange prop not supported for this view')
       }
@@ -949,7 +969,11 @@ class Calendar extends React.Component {
     }
 
     let views = this.getViews()
-    this.handleRangeChange(this.props.date, views[view])
+    this.handleRangeChange(
+      this.props.date || this.props.getNow(),
+      views[view],
+      view
+    )
   }
 
   handleSelectEvent = (...args) => {

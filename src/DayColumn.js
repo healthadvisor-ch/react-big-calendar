@@ -4,15 +4,16 @@ import React, { createRef } from 'react'
 import cn from 'classnames'
 
 import Selection, { getBoundsForNode, isEvent } from './Selection'
-import dates from './utils/dates'
 import * as TimeSlotUtils from './utils/TimeSlots'
 import { isSelected } from './utils/selection'
 
 import { notify } from './utils/helpers'
 import * as DayEventLayout from './utils/DayEventLayout'
-import DayColumnWrapper from './DayColumnWrapper'
 import TimeSlotGroup from './TimeSlotGroup'
 import TimeGridEvent from './TimeGridEvent'
+import { DayLayoutAlgorithmPropType } from './utils/propTypes'
+
+import DayColumnWrapper from './DayColumnWrapper'
 
 class DayColumn extends React.Component {
   static propTypes = {
@@ -25,6 +26,7 @@ class DayColumn extends React.Component {
     isNow: PropTypes.bool,
 
     rtl: PropTypes.bool,
+    resizable: PropTypes.bool,
 
     accessors: PropTypes.object.isRequired,
     components: PropTypes.object.isRequired,
@@ -48,6 +50,8 @@ class DayColumn extends React.Component {
     className: PropTypes.string,
     dragThroughEvents: PropTypes.bool,
     resource: PropTypes.any,
+
+    dayLayoutAlgorithm: DayLayoutAlgorithmPropType,
   }
 
   static defaultProps = {
@@ -158,7 +162,7 @@ class DayColumn extends React.Component {
   renderEvents = () => {
     let {
       events,
-      rtl: isRtl,
+      rtl,
       selected,
       accessors,
       localizer,
@@ -166,7 +170,9 @@ class DayColumn extends React.Component {
       components,
       step,
       timeslots,
+      dayLayoutAlgorithm,
       resource,
+      resizable,
     } = this.props
 
     const { slotMetrics } = this
@@ -177,6 +183,7 @@ class DayColumn extends React.Component {
       accessors,
       slotMetrics,
       minimumStartDifference: Math.ceil((step * timeslots) / 2),
+      dayLayoutAlgorithm,
     })
 
     return styledEvents.map(({ event, style }, idx) => {
@@ -195,8 +202,8 @@ class DayColumn extends React.Component {
       else if (startsBeforeDay && startsAfterDay) label = messages.allDay
       else label = localizer.format({ start, end }, format)
 
-      let continuesEarlier = startsBeforeDay || slotMetrics.startsBefore(start)
-      let continuesLater = startsAfterDay || slotMetrics.startsAfter(end)
+      let continuesPrior = startsBeforeDay || slotMetrics.startsBefore(start)
+      let continuesAfter = startsAfterDay || slotMetrics.startsAfter(end)
 
       return (
         <TimeGridEvent
@@ -205,15 +212,16 @@ class DayColumn extends React.Component {
           label={label}
           key={`evt_${resource ? `${resource}_` : ''}${idx}`}
           getters={getters}
-          isRtl={isRtl}
+          rtl={rtl}
           components={components}
-          continuesEarlier={continuesEarlier}
-          continuesLater={continuesLater}
+          continuesPrior={continuesPrior}
+          continuesAfter={continuesAfter}
           accessors={accessors}
           selected={isSelected(event, selected)}
           resourceId={resource}
           onClick={e => this._select(event, e)}
           onDoubleClick={e => this._doubleClick(event, e)}
+          resizable={resizable}
         />
       )
     })
@@ -221,8 +229,9 @@ class DayColumn extends React.Component {
 
   _selectable = () => {
     let node = this.containerRef.current
+    const { longPressThreshold, localizer } = this.props
     let selector = (this._selector = new Selection(() => node, {
-      longPressThreshold: this.props.longPressThreshold,
+      longPressThreshold: longPressThreshold,
     }))
 
     let maybeSelect = box => {
@@ -234,9 +243,9 @@ class DayColumn extends React.Component {
 
       if (onSelecting) {
         if (
-          (dates.eq(current.startDate, start, 'minutes') &&
-            dates.eq(current.endDate, end, 'minutes')) ||
-          onSelecting({ start, end }) === false
+          (localizer.eq(current.startDate, start, 'minutes') &&
+            localizer.eq(current.endDate, end, 'minutes')) ||
+          onSelecting({ start, end, resourceId: this.props.resource }) === false
         )
           return
       }
@@ -257,15 +266,20 @@ class DayColumn extends React.Component {
         getBoundsForNode(node)
       )
 
-      if (!this.state.selecting) this._initialSlot = currentSlot
+      if (!this.state.selecting) {
+        this._initialSlot = currentSlot
+      }
 
       let initialSlot = this._initialSlot
-      if (initialSlot === currentSlot)
-        currentSlot = this.slotMetrics.nextSlot(initialSlot)
+      if (localizer.lte(initialSlot, currentSlot)) {
+        currentSlot = this.slotMetrics.nextSlot(currentSlot)
+      } else if (localizer.gt(initialSlot, currentSlot)) {
+        initialSlot = this.slotMetrics.nextSlot(initialSlot)
+      }
 
       const selectRange = this.slotMetrics.getRange(
-        dates.min(initialSlot, currentSlot),
-        dates.max(initialSlot, currentSlot)
+        localizer.min(initialSlot, currentSlot),
+        localizer.max(initialSlot, currentSlot)
       )
 
       return {
@@ -315,6 +329,12 @@ class DayColumn extends React.Component {
         this.setState({ selecting: false })
       }
     })
+
+    selector.on('reset', () => {
+      if (this.state.selecting) {
+        this.setState({ selecting: false })
+      }
+    })
   }
 
   _teardownSelectable = () => {
@@ -326,13 +346,11 @@ class DayColumn extends React.Component {
   _selectSlot = ({ startDate, endDate, action, bounds, box }) => {
     console.log('dc - selectslot!')
     let current = startDate,
-      repeatLimit = (24 * 60) / this.props.step,
       slots = []
 
-    while (dates.lte(current, endDate) && repeatLimit) {
-      repeatLimit--
+    while (this.props.localizer.lte(current, endDate)) {
       slots.push(current)
-      current = dates.add(current, this.props.step, 'minutes')
+      current = new Date(+current + this.props.step * 60 * 1000) // using Date ensures not to create an endless loop the day DST begins
     }
 
     notify(this.props.onSelectSlot, {

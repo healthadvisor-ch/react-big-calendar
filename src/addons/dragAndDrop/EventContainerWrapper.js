@@ -1,20 +1,15 @@
 /* eslint-disable no-console */
 import PropTypes from 'prop-types'
 import React from 'react'
-import dates from '../../utils/dates'
+import { DnDContext } from './DnDContext'
 
 import Selection, {
   getBoundsForNode,
   getEventNodeFromPoint,
 } from '../../Selection'
 import TimeGridEvent from '../../TimeGridEvent'
-import { dragAccessors } from './common'
+import { dragAccessors, eventTimes, pointInColumn } from './common'
 import NoopWrapper from '../../NoopWrapper'
-
-const pointInColumn = (bounds, { x, y }) => {
-  const { left, right, top } = bounds
-  return x < right + 10 && x > left && y > top
-}
 const propTypes = {}
 
 class EventContainerWrapper extends React.Component {
@@ -27,14 +22,7 @@ class EventContainerWrapper extends React.Component {
     resource: PropTypes.any,
   }
 
-  static contextTypes = {
-    draggable: PropTypes.shape({
-      onStart: PropTypes.func,
-      onEnd: PropTypes.func,
-      onBeginAction: PropTypes.func,
-      dragAndDropAction: PropTypes.object,
-    }),
-  }
+  static contextType = DnDContext
 
   constructor(...args) {
     super(...args)
@@ -83,34 +71,46 @@ class EventContainerWrapper extends React.Component {
       bounds
     )
 
-    let eventStart = accessors.start(event)
-    let eventEnd = accessors.end(event)
-    let end = dates.add(
-      newSlot,
-      dates.diff(eventStart, eventEnd, 'minutes'),
-      'minutes'
-    )
-
-    this.update(event, slotMetrics.getRange(newSlot, end))
+    const { duration } = eventTimes(event, accessors, this.props.localizer)
+    let newEnd = this.props.localizer.add(newSlot, duration, 'milliseconds')
+    this.update(event, slotMetrics.getRange(newSlot, newEnd, false, true))
   }
 
-  handleResize(point, boundaryBox) {
-    // TODO shall we move start/end computation to eventTimes function?
-    let start, end
-    const { accessors, slotMetrics } = this.props
+  handleResize(point, bounds) {
+    const { accessors, slotMetrics, localizer } = this.props
     const { event, direction } = this.context.draggable.dragAndDropAction
+    const newTime = slotMetrics.closestSlotFromPoint(point, bounds)
     console.log(`ECW - handleResize - direction ${direction}`)
 
-    let currentSlot = slotMetrics.closestSlotFromPoint(point, boundaryBox)
+    let { start, end } = eventTimes(event, accessors, localizer)
+    let newRange
     if (direction === 'UP') {
-      end = accessors.end(event)
-      start = dates.min(currentSlot, slotMetrics.closestSlotFromDate(end, -1))
+      const newStart = localizer.min(
+        newTime,
+        slotMetrics.closestSlotFromDate(end, -1)
+      )
+      // Get the new range based on the new start
+      // but don't overwrite the end date as it could be outside this day boundary.
+      newRange = slotMetrics.getRange(newStart, end)
+      newRange = {
+        ...newRange,
+        endDate: end,
+      }
     } else if (direction === 'DOWN') {
-      start = accessors.start(event)
-      end = dates.max(currentSlot, slotMetrics.closestSlotFromDate(start))
+      // Get the new range based on the new end
+      // but don't overwrite the start date as it could be outside this day boundary.
+      const newEnd = localizer.max(
+        newTime,
+        slotMetrics.closestSlotFromDate(start)
+      )
+      newRange = slotMetrics.getRange(start, newEnd)
+      newRange = {
+        ...newRange,
+        startDate: start,
+      }
     }
 
-    this.update(event, slotMetrics.getRange(start, end))
+    this.update(event, newRange)
   }
 
   _selectable = () => {

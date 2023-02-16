@@ -5158,10 +5158,10 @@
     "whatwg-mimetype" "^2.2.0"
     "whatwg-url" "^7.0.0"
 
-"date-arithmetic@^3.0.0":
-  "integrity" "sha512-ynlmvduDVuzwDDYW3OF4RHCikdzegg0vWQtzwjiVKPs/RjZ93b/7AxIwhfZKxSQQFA8l9lwhkyeDVQyrzbPUwA=="
-  "resolved" "https://registry.npmjs.org/date-arithmetic/-/date-arithmetic-3.1.0.tgz"
-  "version" "3.1.0"
+"date-arithmetic@^4.1.0":
+  "integrity" "sha512-QWxYLR5P/6GStZcdem+V1xoto6DMadYWpMXU82ES3/RfR3Wdwr3D0+be7mgOJ+Ov0G9D5Dmb9T17sNLQYj9XOg=="
+  "resolved" "https://registry.npmjs.org/date-arithmetic/-/date-arithmetic-4.1.0.tgz"
+  "version" "4.1.0"
 
 "date-fns@^1.27.2":
   "integrity" "sha512-hBSVCvSmWC+QypYObzwGOd9wqdDpOt+0wl0KbU+R+uuZBS1jN8VsD1ss3irQDknRj5NvxiTF6oj/nDRnN/UQNw=="

@@ -1,8 +1,7 @@
 import PropTypes from 'prop-types'
-import React from 'react'
+import React, { createRef } from 'react'
 import cn from 'classnames'
 
-import dates from './utils/dates'
 import { notify } from './utils/helpers'
 import { dateCellSelection, getSlotAtX, pointInBox } from './utils/selection'
 import Selection, { getBoundsForNode, isEvent } from './Selection'
@@ -11,7 +10,6 @@ class BackgroundCells extends React.Component {
   static propTypes = {
     date: PropTypes.instanceOf(Date),
     getNow: PropTypes.func.isRequired,
-    resourceId: PropTypes.any,
 
     getters: PropTypes.object.isRequired,
     components: PropTypes.object.isRequired,
@@ -28,6 +26,9 @@ class BackgroundCells extends React.Component {
     range: PropTypes.arrayOf(PropTypes.instanceOf(Date)),
     rtl: PropTypes.bool,
     type: PropTypes.string,
+    resourceId: PropTypes.any,
+
+    localizer: PropTypes.any,
   }
 
   constructor(props, context) {
@@ -36,7 +37,7 @@ class BackgroundCells extends React.Component {
     this.state = {
       selecting: false,
     }
-    this.containerRef = React.createRef()
+    this.containerRef = createRef()
   }
 
   componentDidMount() {
@@ -62,6 +63,7 @@ class BackgroundCells extends React.Component {
       date: currentDate,
       components: { dateCellWrapper: Wrapper },
       resourceId,
+      localizer,
     } = this.props
     let { selecting, startIdx, endIdx } = this.state
     let current = getNow()
@@ -80,9 +82,9 @@ class BackgroundCells extends React.Component {
                   'rbc-day-bg',
                   className,
                   selected && 'rbc-selected-cell',
-                  dates.eq(date, current, 'day') && 'rbc-today',
+                  localizer.isSameDate(date, current) && 'rbc-today',
                   currentDate &&
-                    dates.month(currentDate) !== dates.month(date) &&
+                    localizer.neq(currentDate, date, 'month') &&
                     'rbc-off-range-bg'
                 )}
               />

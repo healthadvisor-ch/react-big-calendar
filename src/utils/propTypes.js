@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types'
 import elementType from 'prop-types-extra/lib/elementType'
-import all from 'prop-types-extra/lib/all'
 import { views as Views } from './constants'
 
 export { elementType }
@@ -42,17 +41,18 @@ export let dateRangeFormat = PropTypes.func
  */
 export let views = PropTypes.oneOfType([
   PropTypes.arrayOf(PropTypes.oneOf(viewNames)),
-  all(PropTypes.object, (props, name, ...args) => {
-    let prop = props[name],
-      err
-
-    Object.keys(prop).every(key => {
-      let isBuiltinView =
-        viewNames.indexOf(key) !== -1 && typeof prop[key] === 'boolean'
-
-      return isBuiltinView || !(err = elementType(prop, key, ...args))
-    })
-
-    return err || null
+  PropTypes.objectOf((prop, key, ...args) => {
+    let isBuiltinView =
+      viewNames.indexOf(key) !== -1 && typeof prop[key] === 'boolean'
+    if (isBuiltinView) {
+      return null
+    } else {
+      return PropTypes.elementType(prop, key, ...args)
+    }
   }),
+])
+
+export const DayLayoutAlgorithmPropType = PropTypes.oneOfType([
+  PropTypes.oneOf(['overlap', 'no-overlap']),
+  PropTypes.func,
 ])

@@ -1,10 +1,9 @@
+import React, { createRef } from 'react'
 import cn from 'classnames'
 import getHeight from 'dom-helpers/height'
 import qsa from 'dom-helpers/querySelectorAll'
 import PropTypes from 'prop-types'
-import React from 'react'
 
-import dates from './utils/dates'
 import BackgroundCells from './BackgroundCells'
 import EventRow from './EventRow'
 import EventEndingRow from './EventEndingRow'
@@ -16,8 +15,8 @@ const propTypes = {
   range: PropTypes.array.isRequired,
 
   rtl: PropTypes.bool,
-  resourceId: PropTypes.any,
   resizable: PropTypes.bool,
+  resourceId: PropTypes.any,
   renderForMeasure: PropTypes.bool,
   renderHeader: PropTypes.func,
 
@@ -55,9 +54,9 @@ class DateContentRow extends React.Component {
   constructor(...args) {
     super(...args)
 
-    this.containerRef = React.createRef()
-    this.headingRowRef = React.createRef()
-    this.eventRowRef = React.createRef()
+    this.containerRef = createRef()
+    this.headingRowRef = createRef()
+    this.eventRowRef = createRef()
 
     this.slotMetrics = DateSlotMetrics.getSlotMetrics()
   }
@@ -68,7 +67,7 @@ class DateContentRow extends React.Component {
     onSelectSlot(range.slice(slot.start, slot.end + 1), slot)
   }
 
-  handleShowMore = slot => {
+  handleShowMore = (slot, target) => {
     const { range, onShowMore } = this.props
     let metrics = this.slotMetrics(this.props)
     let row = qsa(this.containerRef.current, '.rbc-row-bg')[0]
@@ -77,7 +76,7 @@ class DateContentRow extends React.Component {
     if (row) cell = row.children[slot - 1]
 
     let events = metrics.getEventsForSlot(slot)
-    onShowMore(events, range[slot - 1], cell, slot)
+    onShowMore(events, range[slot - 1], cell, slot, target)
   }
 
   getContainer = () => {
@@ -86,6 +85,7 @@ class DateContentRow extends React.Component {
   }
 
   getRowLimit() {
+    /* Guessing this only gets called on the dummyRow */
     const eventHeight = getHeight(this.eventRowRef.current)
     const headingHeight =
       this.headingRowRef && this.headingRowRef.current
@@ -97,14 +97,14 @@ class DateContentRow extends React.Component {
   }
 
   renderHeadingCell = (date, index) => {
-    let { renderHeader, getNow } = this.props
+    let { renderHeader, getNow, localizer } = this.props
 
     return renderHeader({
       date,
       key: `header_${index}`,
       className: cn(
         'rbc-date-cell',
-        dates.eq(date, getNow(), 'day') && 'rbc-now'
+        localizer.isSameDate(date, getNow()) && 'rbc-now'
       ),
     })
   }

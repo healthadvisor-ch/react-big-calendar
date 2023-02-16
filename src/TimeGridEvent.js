@@ -1,7 +1,11 @@
 /* eslint-disable no-console */
-import _ from 'lodash'
+import _defaults from 'lodash/defaults'
 import cn from 'classnames'
 import React from 'react'
+
+function stringifyPercent(v) {
+  return typeof v === 'string' ? v : v + '%'
+}
 
 /* eslint-disable react/prop-types */
 class TimeGridEvent extends React.Component {
@@ -13,11 +17,11 @@ class TimeGridEvent extends React.Component {
       className,
       event,
       accessors,
-      isRtl,
+      rtl,
       selected,
       label,
-      continuesEarlier,
-      continuesLater,
+      continuesPrior,
+      continuesAfter,
       getters,
       onClick,
       onDoubleClick,
@@ -50,44 +54,45 @@ class TimeGridEvent extends React.Component {
     ]
 
     // treat < 400 ms touches on events as clicks on touch devices
-    let { timestamp } = this.state
-    let onTouchStart = e => {
-      console.log(`TGE - onTouchStart: ${e.pointerType}`)
-      this.setState({ timestamp: Date.now() })
-    }
-    let onTouchEnd = e => {
-      console.log(`TGE - onTouchEnd: ${e.pointerType}`)
-      if (e.pointerType === 'mouse') {
-        return
-      }
-      let now = Date.now()
-      if (now - timestamp < 400) {
-        console.log('TGE - onClick!')
-        onClick(e)
-      }
-    }
+    // let { timestamp } = this.state
+    // let onTouchStart = e => {
+    //   console.log(`TGE - onTouchStart: ${e.pointerType}`)
+    //   this.setState({ timestamp: Date.now() })
+    // }
+    // let onTouchEnd = e => {
+    //   console.log(`TGE - onTouchEnd: ${e.pointerType}`)
+    //   if (e.pointerType === 'mouse') {
+    //     return
+    //   }
+    //   let now = Date.now()
+    //   if (now - timestamp < 400) {
+    //     console.log('TGE - onClick!')
+    //     onClick(e)
+    //   }
+    // }
 
     return (
       <EventWrapper type="time" {...this.props}>
         <div
           onClick={e => {
-            const now = Date.now()
-            if (now - timestamp < 400) {
-              onClick(e)
-            } else {
-              e.stopPropagation()
-              e.preventDefault()
-            }
-            this.setState({ timestamp: 0 })
+            onClick(e)
+            // const now = Date.now()
+            // if (now - timestamp < 400) {
+            //   onClick(e)
+            // } else {
+            //   e.stopPropagation()
+            //   e.preventDefault()
+            // }
+            // this.setState({ timestamp: 0 })
           }}
-          onPointerDown={onTouchStart}
-          onPointerUp={onTouchEnd}
+          // onPointerDown={onTouchStart}
+          // onPointerUp={onTouchEnd}
           onDoubleClick={onDoubleClick}
-          style={_.defaults({}, userProps.style, {
-            top: `${top}%`,
-            height: `${height}%`,
-            [isRtl ? 'right' : 'left']: `${Math.max(0, xOffset)}%`,
-            width: `${width}%`,
+          style={_defaults({}, userProps.style, {
+            top: stringifyPercent(top),
+            height: stringifyPercent(height),
+            [rtl ? 'right' : 'left']: stringifyPercent(Math.max(0, xOffset)),
+            width: stringifyPercent(width),
             maxWidth: userProps.style.left
               ? `calc(100% - ${userProps.style.left})`
               : '100%',
@@ -99,8 +104,8 @@ class TimeGridEvent extends React.Component {
           }
           className={cn('rbc-event', className, userProps.className, {
             'rbc-selected': selected,
-            'rbc-event-continues-earlier': continuesEarlier,
-            'rbc-event-continues-later': continuesLater,
+            'rbc-event-continues-earlier': continuesPrior,
+            'rbc-event-continues-later': continuesAfter,
           })}
         >
           {inner}
