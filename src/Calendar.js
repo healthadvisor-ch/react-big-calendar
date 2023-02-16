@@ -522,6 +522,15 @@ class Calendar extends React.Component {
     slotPropGetter: PropTypes.func,
 
     /**
+     * Optionally provide a function that returns an object of props to be applied
+     * to the time-slot group node. Useful to dynamically change the sizing of time nodes.
+     * ```js
+     * () => { style?: Object }
+     * ```
+     */
+    slotGroupPropGetter: PropTypes.func,
+
+    /**
      * Optionally provide a function that returns an object of className or style props
      * to be applied to the the day background. Caution! Styles that change layout or
      * position may break the calendar in unexpected ways.
@@ -782,6 +791,7 @@ class Calendar extends React.Component {
     resourceTitleAccessor,
     eventPropGetter,
     slotPropGetter,
+    slotGroupPropGetter,
     dayPropGetter,
     view,
     views,
@@ -801,6 +811,8 @@ class Calendar extends React.Component {
           (eventPropGetter && eventPropGetter(...args)) || {},
         slotProp: (...args) =>
           (slotPropGetter && slotPropGetter(...args)) || {},
+        slotGroupProp: (...args) =>
+          (slotGroupPropGetter && slotGroupPropGetter(...args)) || {},
         dayProp: (...args) => (dayPropGetter && dayPropGetter(...args)) || {},
       },
       components: defaults(components[view] || {}, omit(components, names), {
