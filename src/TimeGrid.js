@@ -121,7 +121,7 @@ export default class TimeGrid extends Component {
       timeIndicator.style[rtl ? 'right' : 'left'] =
         timeGutter.offsetWidth + 'px'
       timeIndicator.style.top = offset + 'px'
-    } else {
+    } else if (timeIndicator) {
       timeIndicator.style.display = 'none'
     }
   }
