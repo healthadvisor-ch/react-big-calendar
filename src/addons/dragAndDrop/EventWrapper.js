@@ -31,26 +31,30 @@ class EventWrapper extends React.Component {
 
   handleResizeUp = e => {
     if (e.button !== 0) return
-    e.stopPropagation()
     this.handleBeginAction(e, 'resize', 'UP')
   }
   handleResizeDown = e => {
     if (e.button !== 0) return
-    e.stopPropagation()
     this.handleBeginAction(e, 'resize', 'DOWN')
   }
   handleResizeLeft = e => {
     if (e.button !== 0) return
-    e.stopPropagation()
     this.handleBeginAction(e, 'resize', 'LEFT')
   }
   handleResizeRight = e => {
     if (e.button !== 0) return
-    e.stopPropagation()
     this.handleBeginAction(e, 'resize', 'RIGHT')
   }
   handleStartDragging = e => {
-    this.handleBeginAction(e, 'move')
+    if (e.button !== 0) return
+    // https://github.com/jquense/react-big-calendar/commit/759a2324f6f83f7e745b74d2a020336469122287
+    // hack: because of the way the anchors are arranged in the DOM, resize
+    // anchor events will bubble up to the move anchor listener. Don't start
+    // move operations when we're on a resize anchor.
+    const isResizeHandle = e.target.className.includes('rbc-addons-dnd-resize')
+    if (!isResizeHandle) {
+      this.handleBeginAction(e, 'move')
+    }
   }
 
   handleBeginAction = (e, action, direction) => {
@@ -110,24 +114,24 @@ class EventWrapper extends React.Component {
     let EndAnchor = null
 
     /*
- * The resizability of events depends on whether they are
- * allDay events and how they are displayed.
- *
- * 1. If the event is being shown in an event row (because
- * it is an allDay event shown in the header row or because as
- * in month view the view is showing all events as rows) then we
- * allow east-west resizing.
- *
- * 2. Otherwise the event is being displayed
- * normally, we can drag it north-south to resize the times.
- *
- * See `DropWrappers` for handling of the drop of such events.
- *
- * Notwithstanding the above, we never show drag anchors for
- * events which continue beyond current component. This happens
- * in the middle of events when showMultiDay is true, and to
- * events at the edges of the calendar's min/max location.
- */
+     * The resizability of events depends on whether they are
+     * allDay events and how they are displayed.
+     *
+     * 1. If the event is being shown in an event row (because
+     * it is an allDay event shown in the header row or because as
+     * in month view the view is showing all events as rows) then we
+     * allow east-west resizing.
+     *
+     * 2. Otherwise the event is being displayed
+     * normally, we can drag it north-south to resize the times.
+     *
+     * See `DropWrappers` for handling of the drop of such events.
+     *
+     * Notwithstanding the above, we never show drag anchors for
+     * events which continue beyond current component. This happens
+     * in the middle of events when showMultiDay is true, and to
+     * events at the edges of the calendar's min/max location.
+     */
     const isResizable = resizableAccessor
       ? !!get(event, resizableAccessor)
       : true
@@ -142,13 +146,13 @@ class EventWrapper extends React.Component {
       }
 
       /*
-  * props.children is the singular <Event> component.
-  * BigCalendar positions the Event abolutely and we
-  * need the anchors to be part of that positioning.
-  * So we insert the anchors inside the Event's children
-  * rather than wrap the Event here as the latter approach
-  * would lose the positioning.
-  */
+       * props.children is the singular <Event> component.
+       * BigCalendar positions the Event abolutely and we
+       * need the anchors to be part of that positioning.
+       * So we insert the anchors inside the Event's children
+       * rather than wrap the Event here as the latter approach
+       * would lose the positioning.
+       */
       const newProps = {
         onMouseDown: this.handleStartDragging,
         onTouchStart: this.handleStartDragging,
