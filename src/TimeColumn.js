@@ -2,7 +2,6 @@ import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import cn from 'classnames'
 
-import dates from './utils/dates'
 import { elementType, dateFormat } from './utils/propTypes'
 import BackgroundWrapper from './BackgroundWrapper'
 import TimeSlotGroup from './TimeSlotGroup'
@@ -24,6 +23,7 @@ export default class TimeColumn extends Component {
     slotPropGetter: PropTypes.func,
     dayPropGetter: PropTypes.func,
     dayWrapperComponent: elementType,
+    localizer: PropTypes.object,
   }
   static defaultProps = {
     step: 30,
@@ -75,8 +75,9 @@ export default class TimeColumn extends Component {
       step,
       timeslots,
       resource,
+      localizer,
     } = this.props
-    const totalMin = dates.diff(min, max, 'minutes')
+    const totalMin = localizer.diff(min, max, 'minutes')
     const numGroups = Math.ceil(totalMin / (step * timeslots))
     const renderedSlots = []
     const groupLengthInMinutes = step * timeslots
@@ -87,17 +88,17 @@ export default class TimeColumn extends Component {
     let isNow = false
 
     for (var i = 0; i < numGroups; i++) {
-      isNow = dates.inRange(
+      isNow = localizer.inRange(
         now,
         date,
-        dates.add(next, groupLengthInMinutes - 1, 'minutes'),
+        localizer.add(next, groupLengthInMinutes - 1, 'minutes'),
         'minutes'
       )
 
-      next = dates.add(date, groupLengthInMinutes, 'minutes')
+      next = localizer.add(date, groupLengthInMinutes, 'minutes')
       if (className === 'rbc-time-gutter' && +date === +next) {
         // Safari bug
-        next = dates.add(date, groupLengthInMinutes * 2, 'minutes')
+        next = localizer.add(date, groupLengthInMinutes * 2, 'minutes')
       }
       renderedSlots.push(this.renderTimeSliceGroup(i, isNow, date, resource))
 

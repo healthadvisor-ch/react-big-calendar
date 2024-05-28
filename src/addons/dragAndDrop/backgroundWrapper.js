@@ -5,17 +5,17 @@ import cn from 'classnames'
 
 import { accessor } from '../../utils/propTypes'
 import { accessor as get } from '../../utils/accessors'
-import dates from '../../utils/dates'
+
 import BigCalendar from '../../index'
 
-export function getEventTimes(start, end, dropDate, type) {
-  // Calculate duration between original start and end dates
-  const duration = dates.diff(start, end)
+export function getEventTimes(start, end, dropDate, type, localizer) {
+  // Calculate duration between original start and end localizer
+  const duration = localizer.diff(start, end)
 
   // If the event is dropped in a "Day" cell, preserve an event's start time by extracting the hours and minutes off
   // the original start date and add it to newDate.value
   let nextStart =
-    type === 'dateCellWrapper' ? dates.merge(dropDate, start) : dropDate
+    type === 'dateCellWrapper' ? localizer.merge(dropDate, start) : dropDate
 
   if (type === 'dayWrapper' && window.updateDropPositionBasedOnDragPoint) {
     const {
@@ -30,12 +30,12 @@ export function getEventTimes(start, end, dropDate, type) {
       // Round to given step duration (15 minutes by default)
       const minStepDuration = (window.minStepDuration || 15) * 60 * 1000
       diff = Math.floor(diff / minStepDuration) * minStepDuration
-      nextStart = dates.subtract(nextStart, diff, 'milliseconds')
+      nextStart = localizer.subtract(nextStart, diff, 'milliseconds')
     }
     delete window.updateDropPositionBasedOnDragPoint
   }
 
-  const nextEnd = dates.add(nextStart, duration, 'milliseconds')
+  const nextEnd = localizer.add(nextStart, duration, 'milliseconds')
 
   return {
     start: nextStart,
@@ -50,46 +50,6 @@ const propTypes = {
 }
 
 class DraggableBackgroundWrapper extends React.Component {
-  // constructor(...args) {
-  //   super(...args);
-  //   this.state = { isOver: false };
-  // }
-  //
-  // UNSAFE_componentWillMount() {
-  //   let monitor = this.context.dragDropManager.getMonitor()
-  //
-  //   this.monitor = monitor
-  //
-  //   this.unsubscribeToStateChange = monitor
-  //     .subscribeToStateChange(this.handleStateChange)
-  //
-  //   this.unsubscribeToOffsetChange = monitor
-  //     .subscribeToOffsetChange(this.handleOffsetChange)
-  // }
-  //
-  // componentWillUnmount() {
-  //   this.monitor = null
-  //   this.unsubscribeToStateChange()
-  //   this.unsubscribeToOffsetChange()
-  // }
-  //
-  // handleStateChange = () => {
-  //   const event = this.monitor.getItem();
-  //   if (!event && this.state.isOver) {
-  //     this.setState({ isOver: false });
-  //   }
-  // }
-  //
-  // handleOffsetChange = () => {
-  //   const { value } = this.props;
-  //   const { start, end } = this.monitor.getItem();
-  //
-  //   const isOver = dates.inRange(value, start, end, 'minute');
-  //   if (this.state.isOver !== isOver) {
-  //     this.setState({ isOver });
-  //   }
-  // };
-
   render() {
     const { connectDropTarget, children, type, isOver } = this.props
     const BackgroundWrapper = BigCalendar.components[type]
@@ -136,7 +96,7 @@ function createWrapper(type) {
       }
 
       const event = monitor.getItem()
-      const { value } = props
+      const { value, localizer } = props
       const { onEventDrop, onEventResize, startAccessor, endAccessor } = context
       const start = get(event, startAccessor)
       const end = get(event, endAccessor)
@@ -144,7 +104,7 @@ function createWrapper(type) {
       if (monitor.getItemType() === 'event') {
         onEventDrop({
           event,
-          ...getEventTimes(start, end, value, type),
+          ...getEventTimes(start, end, value, type, localizer),
         })
       }
 
@@ -172,7 +132,7 @@ function createWrapper(type) {
             })
           }
           case 'resizeRight': {
-            const nextEnd = dates.add(value, 1, 'day')
+            const nextEnd = localizer.add(value, 1, 'day')
             return onEventResize('drop', {
               event,
               start: event.start,
@@ -191,9 +151,11 @@ function createWrapper(type) {
     },
   }
 
-  return DropTarget(['event', 'resize'], dropTarget, collectTarget)(
-    DraggableBackgroundWrapper
-  )
+  return DropTarget(
+    ['event', 'resize'],
+    dropTarget,
+    collectTarget
+  )(DraggableBackgroundWrapper)
 }
 
 export const DateCellWrapper = createWrapper('dateCellWrapper')

@@ -2,9 +2,9 @@ import PropTypes from 'prop-types'
 import cn from 'classnames'
 import raf from 'dom-helpers/util/requestAnimationFrame'
 import React, { Component } from 'react'
+import { isJustDate } from './utils/dates'
 import { findDOMNode } from 'react-dom'
 
-import dates from './utils/dates'
 import DayColumn from './DayColumn'
 import TimeGutter from './TimeGutter'
 
@@ -23,11 +23,11 @@ export default class TimeGrid extends Component {
     step: PropTypes.number,
     timeslots: PropTypes.number,
     range: PropTypes.arrayOf(PropTypes.instanceOf(Date)),
-    min: PropTypes.instanceOf(Date),
-    max: PropTypes.instanceOf(Date),
+    min: PropTypes.instanceOf(Date).isRequired,
+    max: PropTypes.instanceOf(Date).isRequired,
     getNow: PropTypes.func.isRequired,
 
-    scrollToTime: PropTypes.instanceOf(Date),
+    scrollToTime: PropTypes.instanceOf(Date).isRequired,
     showMultiDayTimes: PropTypes.bool,
 
     rtl: PropTypes.bool,
@@ -56,9 +56,6 @@ export default class TimeGrid extends Component {
   static defaultProps = {
     step: 30,
     timeslots: 2,
-    min: dates.startOf(new Date(), 'day'),
-    max: dates.endOf(new Date(), 'day'),
-    scrollToTime: dates.startOf(new Date(), 'day'),
     useDynamicWidthOfTimeIndicator: false,
   }
 
@@ -92,11 +89,18 @@ export default class TimeGrid extends Component {
   }
 
   positionTimeIndicator() {
-    const { rtl, min, max, getNow, useDynamicWidthOfTimeIndicator } = this.props
+    const {
+      rtl,
+      min,
+      max,
+      getNow,
+      useDynamicWidthOfTimeIndicator,
+      localizer,
+    } = this.props
     const current = getNow()
 
-    const secondsGrid = dates.diff(max, min, 'seconds')
-    const secondsPassed = dates.diff(current, min, 'seconds')
+    const secondsGrid = localizer.diff(max, min, 'seconds')
+    const secondsPassed = localizer.diff(current, min, 'seconds')
 
     const timeIndicator = this.refs.timeIndicator
     const factor = secondsPassed / secondsGrid
@@ -164,11 +168,11 @@ export default class TimeGrid extends Component {
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    const { range, scrollToTime } = this.props
+    const { range, scrollToTime, localizer } = this.props
     // When paginating, reset scroll
     if (
-      !dates.eq(nextProps.range[0], range[0], 'minute') ||
-      !dates.eq(nextProps.scrollToTime, scrollToTime, 'minute')
+      localizer.neq(nextProps.range[0], range[0], 'minutes') ||
+      localizer.neq(nextProps.scrollToTime, scrollToTime, 'minutes')
     ) {
       this.calculateScroll(nextProps)
     }
@@ -216,18 +220,23 @@ export default class TimeGrid extends Component {
     const groupedEvents = allResources.groupEvents(events)
 
     const daysEvents = (groupedEvents.get(resourceId) || []).filter(event =>
-      dates.inRange(date, accessors.start(event), accessors.end(event), 'day')
+      localizer.inRange(
+        date,
+        accessors.start(event),
+        accessors.end(event),
+        'day'
+      )
     )
 
     return (
       <DayColumn
         {...this.props}
         localizer={localizer}
-        min={dates.merge(date, min)}
-        max={dates.merge(date, max)}
+        min={localizer.merge(date, min)}
+        max={localizer.merge(date, max)}
         resource={resource && resourceId}
         components={components}
-        isNow={dates.eq(date, now, 'day')}
+        isNow={localizer.isSameDate(date, now)}
         key={resourceIndex + '-' + dateIndex}
         date={date}
         events={daysEvents}
@@ -313,8 +322,8 @@ export default class TimeGrid extends Component {
 
         if (
           accessors.allDay(event) ||
-          (dates.isJustDate(eStart) && dates.isJustDate(eEnd)) ||
-          (!showMultiDayTimes && !dates.eq(eStart, eEnd, 'day'))
+          (isJustDate(eStart) && isJustDate(eEnd)) ||
+          (!showMultiDayTimes && localizer.neq(eStart, eEnd, 'day'))
         ) {
           allDayEvents.push(event)
         } else {
@@ -324,7 +333,6 @@ export default class TimeGrid extends Component {
     })
 
     allDayEvents.sort((a, b) => sortEvents(a, b, accessors))
-
     // don't render time label for single DAY view
     // TODO
     // const renderHeaderRow = range.length !== 1
@@ -364,8 +372,8 @@ export default class TimeGrid extends Component {
             date={start}
             ref={this.gutterRef}
             localizer={localizer}
-            min={dates.merge(start, min)}
-            max={dates.merge(start, max)}
+            min={localizer.merge(start, min)}
+            max={localizer.merge(start, max)}
             step={this.props.step}
             getNow={this.props.getNow}
             timeslots={this.props.timeslots}
@@ -402,10 +410,10 @@ export default class TimeGrid extends Component {
   }
 
   calculateScroll(props = this.props) {
-    const { min, max, scrollToTime } = props
+    const { min, max, scrollToTime, localizer } = props
 
-    const diffMillis = scrollToTime - dates.startOf(scrollToTime, 'day')
-    const totalMillis = dates.diff(max, min)
+    const diffMillis = scrollToTime - localizer.startOf(scrollToTime, 'day')
+    const totalMillis = localizer.diff(max, min)
 
     this._scrollRatio = diffMillis / totalMillis
   }

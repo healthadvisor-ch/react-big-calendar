@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import cn from 'classnames'
-import dates from './utils/dates'
 
 let propTypes = {
   event: PropTypes.object.isRequired,
@@ -50,7 +49,9 @@ class EventCell extends React.Component {
     let icon = event.icon
 
     let showAsAllDay =
-      isAllDay || allDay || dates.diff(start, dates.ceil(end, 'day'), 'day') > 1
+      isAllDay ||
+      allDay ||
+      localizer.diff(start, localizer.ceil(end, 'day'), 'day') > 1
 
     let userProps = getters.eventProp(event, start, end, selected)
 

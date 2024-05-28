@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types'
 import React from 'react'
-import dates from '../../utils/dates'
 import { findDOMNode } from 'react-dom'
 
 import Selection, {
@@ -73,7 +72,7 @@ class EventContainerWrapper extends React.Component {
 
   handleMove = (point, boundaryBox) => {
     const { event } = this.context.draggable.dragAndDropAction
-    const { accessors, slotMetrics } = this.props
+    const { accessors, slotMetrics, localizer } = this.props
 
     if (!pointInColumn(boundaryBox, point)) {
       this.reset()
@@ -87,9 +86,9 @@ class EventContainerWrapper extends React.Component {
 
     let eventStart = accessors.start(event)
     let eventEnd = accessors.end(event)
-    let end = dates.add(
+    let end = localizer.add(
       currentSlot,
-      dates.diff(eventStart, eventEnd, 'minutes'),
+      localizer.diff(eventStart, eventEnd, 'minutes'),
       'minutes'
     )
 
@@ -100,14 +99,18 @@ class EventContainerWrapper extends React.Component {
     let start, end
     const { accessors, slotMetrics } = this.props
     const { event, direction } = this.context.draggable.dragAndDropAction
+    const { localizer } = this.props
 
     let currentSlot = slotMetrics.closestSlotFromPoint(point, boundaryBox)
     if (direction === 'UP') {
       end = accessors.end(event)
-      start = dates.min(currentSlot, slotMetrics.closestSlotFromDate(end, -1))
+      start = localizer.min(
+        currentSlot,
+        slotMetrics.closestSlotFromDate(end, -1)
+      )
     } else if (direction === 'DOWN') {
       start = accessors.start(event)
-      end = dates.max(currentSlot, slotMetrics.closestSlotFromDate(start))
+      end = localizer.max(currentSlot, slotMetrics.closestSlotFromDate(start))
     }
 
     this.update(event, slotMetrics.getRange(start, end))

@@ -4,7 +4,6 @@ import { findDOMNode } from 'react-dom'
 import cn from 'classnames'
 
 import Selection, { getBoundsForNode, isEvent } from './Selection'
-import dates from './utils/dates'
 import * as TimeSlotUtils from './utils/TimeSlots'
 import { isSelected } from './utils/selection'
 
@@ -212,8 +211,9 @@ class DayColumn extends React.Component {
 
   _selectable = () => {
     let node = findDOMNode(this)
+    const { longPressThreshold, localizer } = this.props
     let selector = (this._selector = new Selection(() => findDOMNode(this), {
-      longPressThreshold: this.props.longPressThreshold,
+      longPressThreshold: longPressThreshold,
     }))
 
     let maybeSelect = box => {
@@ -224,8 +224,8 @@ class DayColumn extends React.Component {
 
       if (onSelecting) {
         if (
-          (dates.eq(current.startDate, start, 'minutes') &&
-            dates.eq(current.endDate, end, 'minutes')) ||
+          (localizer.eq(current.startDate, start, 'minutes') &&
+            localizer.eq(current.endDate, end, 'minutes')) ||
           onSelecting({ start, end }) === false
         )
           return
@@ -253,8 +253,8 @@ class DayColumn extends React.Component {
         currentSlot = this.slotMetrics.nextSlot(initialSlot)
 
       const selectRange = this.slotMetrics.getRange(
-        dates.min(initialSlot, currentSlot),
-        dates.max(initialSlot, currentSlot)
+        localizer.min(initialSlot, currentSlot),
+        localizer.max(initialSlot, currentSlot)
       )
 
       return {
@@ -312,10 +312,10 @@ class DayColumn extends React.Component {
       repeatLimit = (24 * 60) / this.props.step,
       slots = []
 
-    while (dates.lte(current, endDate) && repeatLimit) {
+    while (this.props.localizer.lte(current, endDate) && repeatLimit) {
       repeatLimit--
       slots.push(current)
-      current = dates.add(current, this.props.step, 'minutes')
+      current = this.props.localizer.add(current, this.props.step, 'minutes')
     }
 
     notify(this.props.onSelectSlot, {

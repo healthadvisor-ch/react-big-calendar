@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types'
 import React from 'react'
-import dates from '../../utils/dates'
 import { getSlotAtX, pointInBox } from '../../utils/selection'
 import { findDOMNode } from 'react-dom'
 
@@ -11,14 +10,14 @@ import { dragAccessors } from './common'
 
 const propTypes = {}
 
-const eventTimes = (event, accessors) => {
+const eventTimes = (event, accessors, localizer) => {
   let start = accessors.start(event)
   let end = accessors.end(event)
 
   const isZeroDuration =
-    dates.eq(start, end, 'minutes') && start.getMinutes() === 0
+    localizer.eq(start, end, 'minutes') && start.getMinutes() === 0
   // make zero duration midnight events at least one day long
-  if (isZeroDuration) end = dates.add(end, 1, 'day')
+  if (isZeroDuration) end = localizer.add(end, 1, 'day')
   return { start, end }
 }
 
@@ -30,6 +29,7 @@ class WeekWrapper extends React.Component {
     getters: PropTypes.object.isRequired,
     components: PropTypes.object.isRequired,
     resourceId: PropTypes.any,
+    localizer: PropTypes.object,
   }
 
   static contextTypes = {
@@ -62,7 +62,8 @@ class WeekWrapper extends React.Component {
     const segment = eventSegments(
       { ...event, end, start, __isPreview: true },
       this.props.slotMetrics.range,
-      dragAccessors
+      dragAccessors,
+      this.props.localizer
     )
 
     const { segment: lastSegment } = this.state
@@ -80,7 +81,7 @@ class WeekWrapper extends React.Component {
   handleMove = ({ x, y }, node) => {
     const { event } = this.context.draggable.dragAndDropAction
     const metrics = this.props.slotMetrics
-    const { accessors } = this.props
+    const { accessors, localizer } = this.props
 
     if (!event) return
 
@@ -92,14 +93,14 @@ class WeekWrapper extends React.Component {
     }
 
     // Make sure to maintain the time of the start date while moving it to the new slot
-    let start = dates.merge(
+    let start = localizer.merge(
       metrics.getDateForSlot(getSlotAtX(rowBox, x, false, metrics.slots)),
       accessors.start(event)
     )
 
-    let end = dates.add(
+    let end = localizer.add(
       start,
-      dates.diff(accessors.start(event), accessors.end(event), 'minutes'),
+      localizer.diff(accessors.start(event), accessors.end(event), 'minutes'),
       'minutes'
     )
 
@@ -108,9 +109,9 @@ class WeekWrapper extends React.Component {
 
   handleResize(point, node) {
     const { event, direction } = this.context.draggable.dragAndDropAction
-    const { accessors, slotMetrics: metrics } = this.props
+    const { accessors, slotMetrics: metrics, localizer } = this.props
 
-    let { start, end } = eventTimes(event, accessors)
+    let { start, end } = eventTimes(event, accessors, localizer)
 
     let rowBox = getBoundsForNode(node)
     let cursorInRow = pointInBox(rowBox, point)
@@ -119,7 +120,7 @@ class WeekWrapper extends React.Component {
       if (cursorInRow) {
         if (metrics.last < start) return this.reset()
         // add min
-        end = dates.add(
+        end = localizer.add(
           metrics.getDateForSlot(
             getSlotAtX(rowBox, point.x, false, metrics.slots)
           ),
@@ -127,16 +128,16 @@ class WeekWrapper extends React.Component {
           'day'
         )
       } else if (
-        dates.inRange(start, metrics.first, metrics.last) ||
+        localizer.inRange(start, metrics.first, metrics.last) ||
         (rowBox.bottom < point.y && +metrics.first > +start)
       ) {
-        end = dates.add(metrics.last, 1, 'milliseconds')
+        end = localizer.add(metrics.last, 1, 'milliseconds')
       } else {
         this.setState({ segment: null })
         return
       }
 
-      end = dates.max(end, dates.add(start, 1, 'day'))
+      end = localizer.max(end, localizer.add(start, 1, 'day'))
     } else if (direction === 'LEFT') {
       // inbetween Row
       if (cursorInRow) {
@@ -146,16 +147,16 @@ class WeekWrapper extends React.Component {
           getSlotAtX(rowBox, point.x, false, metrics.slots)
         )
       } else if (
-        dates.inRange(end, metrics.first, metrics.last) ||
+        localizer.inRange(end, metrics.first, metrics.last) ||
         (rowBox.top > point.y && +metrics.last < +end)
       ) {
-        start = dates.add(metrics.first, -1, 'milliseconds')
+        start = localizer.add(metrics.first, -1, 'milliseconds')
       } else {
         this.reset()
         return
       }
 
-      start = dates.min(dates.add(end, -1, 'day'), start)
+      start = localizer.min(localizer.add(end, -1, 'day'), start)
     }
 
     this.update(event, start, end)
