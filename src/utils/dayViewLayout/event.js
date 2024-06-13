@@ -1,5 +1,5 @@
 import { accessor as get } from '../accessors'
-import dates from '../dates'
+import * as dates from '../../utils/dates'
 
 export function startsBefore(date, min) {
   return dates.lt(dates.merge(min, date), min, 'minutes')
@@ -27,8 +27,8 @@ export class Event {
     this.endSlot = positionFromDate(endDate, min, totalMin)
     this.start = +startDate
     this.end = +endDate
-    this.top = this.startSlot / totalMin * 100
-    this.height = this.endSlot / totalMin * 100 - this.top
+    this.top = (this.startSlot / totalMin) * 100
+    this.height = (this.endSlot / totalMin) * 100 - this.top
     this.data = data
   }
 

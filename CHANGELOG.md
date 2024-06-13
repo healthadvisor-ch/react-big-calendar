@@ -1,3 +1,7 @@
+## v1.1.0 - Thu, 30 May 2024 09:44:00 GMT
+
+- added support for localization
+
 ## v1.0.1 - Wed, 25 Jan 2023 14:30:00 GMT
 
 - added data props to DayColumn

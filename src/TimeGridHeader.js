@@ -3,7 +3,6 @@ import cn from 'classnames'
 import scrollbarSize from 'dom-helpers/util/scrollbarSize'
 import React from 'react'
 
-import dates from './utils/dates'
 import DateContentRow from './DateContentRow'
 import Header from './Header'
 import ResourceHeader from './ResourceHeader'
@@ -75,7 +74,7 @@ class TimeGridHeader extends React.Component {
         className={cn(
           'rbc-header',
           className,
-          dates.eq(date, today, 'day') && 'rbc-today'
+          localizer.isSameDate(date, today) && 'rbc-today'
         )}
       >
         {drilldownView ? (
@@ -170,7 +169,7 @@ class TimeGridHeader extends React.Component {
   }
 
   getEventsForDay(events, date) {
-    const { accessors } = this.props
+    const { accessors, localizer } = this.props
 
     const allDayEvents = []
 
@@ -184,7 +183,7 @@ class TimeGridHeader extends React.Component {
 
         if (
           accessors.allDay(event) ||
-          (dates.isJustDate(eStart) && dates.isJustDate(eEnd))
+          (localizer.isJustDate(eStart) && localizer.isJustDate(eEnd))
         ) {
           allDayEvents.push(event)
         }

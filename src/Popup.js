@@ -3,7 +3,6 @@ import React from 'react'
 import getOffset from 'dom-helpers/query/offset'
 import getScrollTop from 'dom-helpers/query/scrollTop'
 import getScrollLeft from 'dom-helpers/query/scrollLeft'
-import dates from './utils/dates'
 
 import EventCell from './EventCell'
 import { isSelected } from './utils/selection'
@@ -90,8 +89,16 @@ class Popup extends React.Component {
             accessors={accessors}
             components={components}
             onDoubleClick={onDoubleClick}
-            continuesPrior={dates.lt(accessors.end(event), slotStart, 'day')}
-            continuesAfter={dates.gte(accessors.start(event), slotEnd, 'day')}
+            continuesPrior={localizer.lt(
+              accessors.end(event),
+              slotStart,
+              'day'
+            )}
+            continuesAfter={localizer.gte(
+              accessors.start(event),
+              slotEnd,
+              'day'
+            )}
             selected={isSelected(event, selected)}
           />
         ))}
