@@ -1,3 +1,7 @@
+## v1.1.1 - Thu, 24 Jun 2024 08:25:00 GMT
+
+- fixed events DND on mobile
+
 ## v1.1.0 - Thu, 30 May 2024 09:44:00 GMT
 
 - added support for localization
