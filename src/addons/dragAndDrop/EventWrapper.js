@@ -46,11 +46,9 @@ class EventWrapper extends React.Component {
     this.handleBeginAction(e, 'resize', 'RIGHT')
   }
   handleStartDragging = e => {
-    if (e.button !== 0) return
-    // https://github.com/jquense/react-big-calendar/commit/759a2324f6f83f7e745b74d2a020336469122287
-    // hack: because of the way the anchors are arranged in the DOM, resize
-    // anchor events will bubble up to the move anchor listener. Don't start
-    // move operations when we're on a resize anchor.
+    // If it's a mouse event but not left button was clicked
+    if (e.type === 'mousedown' && e.button !== 0) return
+
     const isResizeHandle = e.target.className.includes('rbc-addons-dnd-resize')
     if (!isResizeHandle) {
       this.handleBeginAction(e, 'move')
