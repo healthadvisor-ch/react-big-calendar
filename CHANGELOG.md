@@ -1,3 +1,7 @@
+## v1.1.2 - Sun, 30 Jun 2024 16:17:00 GMT
+
+- fixed isJustDate() usage
+
 ## v1.1.1 - Thu, 24 Jun 2024 08:25:00 GMT
 
 - fixed events DND on mobile
