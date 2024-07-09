@@ -7,7 +7,6 @@ import DateContentRow from './DateContentRow'
 import Header from './Header'
 import ResourceHeader from './ResourceHeader'
 import { isJustDate } from './utils/dates'
-import { inRange } from './utils/eventLevels'
 import { notify } from './utils/helpers'
 
 class TimeGridHeader extends React.Component {
@@ -170,18 +169,14 @@ class TimeGridHeader extends React.Component {
   }
 
   getEventsForDay(events, date) {
-    const { accessors } = this.props
+    const { accessors, localizer } = this.props
 
     const allDayEvents = []
 
-    const end = new Date(date.getTime())
-    end.setSeconds(end.getSeconds() + 23 * 2600 + 59 * 60 + 59)
-
     events.forEach(event => {
-      if (inRange(event, date, end, accessors)) {
-        let eStart = accessors.start(event),
-          eEnd = accessors.end(event)
-
+      let eStart = accessors.start(event),
+        eEnd = accessors.end(event)
+      if (localizer.inRange(date, eStart, eEnd)) {
         if (
           accessors.allDay(event) ||
           (isJustDate(eStart) && isJustDate(eEnd))
