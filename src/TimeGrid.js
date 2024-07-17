@@ -11,7 +11,7 @@ import TimeGutter from './TimeGutter'
 import getWidth from 'dom-helpers/query/width'
 import TimeGridHeader from './TimeGridHeader'
 import { notify } from './utils/helpers'
-import { inRange, sortEvents } from './utils/eventLevels'
+import { sortEvents } from './utils/eventLevels'
 import Resources from './utils/Resources'
 
 export default class TimeGrid extends Component {
@@ -307,8 +307,7 @@ export default class TimeGrid extends Component {
 
     width = width || this.state.gutterWidth
 
-    let start = range[0],
-      end = range[range.length - 1]
+    let start = range[0]
 
     this.slots = range.length
 
@@ -316,19 +315,17 @@ export default class TimeGrid extends Component {
       rangeEvents = []
 
     events.forEach(event => {
-      if (inRange(event, start, end, accessors)) {
-        let eStart = accessors.start(event),
-          eEnd = accessors.end(event)
+      let eStart = accessors.start(event),
+        eEnd = accessors.end(event)
 
-        if (
-          accessors.allDay(event) ||
-          (isJustDate(eStart) && isJustDate(eEnd)) ||
-          (!showMultiDayTimes && localizer.neq(eStart, eEnd, 'day'))
-        ) {
-          allDayEvents.push(event)
-        } else {
-          rangeEvents.push(event)
-        }
+      if (
+        accessors.allDay(event) ||
+        (isJustDate(eStart) && isJustDate(eEnd)) ||
+        (!showMultiDayTimes && localizer.neq(eStart, eEnd, 'day'))
+      ) {
+        allDayEvents.push(event)
+      } else {
+        rangeEvents.push(event)
       }
     })
 

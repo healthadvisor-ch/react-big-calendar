@@ -16,10 +16,26 @@ import DateContentRow from './DateContentRow'
 import Header from './Header'
 import DateHeader from './DateHeader'
 
-import { inRange, sortEvents } from './utils/eventLevels'
+import { sortEvents } from './utils/eventLevels'
 
-let eventsForWeek = (evts, start, end, accessors, localizer) =>
-  evts.filter(e => inRange(e, start, end, accessors, localizer))
+let eventsForWeek = (evts, start, end, accessors, localizer) => {
+  return evts.filter(event => {
+    return (
+      localizer.inRange(
+        accessors.start(event),
+        localizer.startOf(start, 'day'),
+        localizer.endOf(end, 'day'),
+        'week'
+      ) ||
+      localizer.inRange(
+        accessors.end(event),
+        localizer.startOf(start, 'day'),
+        localizer.endOf(end, 'day'),
+        'week'
+      )
+    )
+  })
+}
 
 let propTypes = {
   events: PropTypes.array.isRequired,

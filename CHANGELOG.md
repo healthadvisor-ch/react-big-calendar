@@ -1,3 +1,7 @@
+## v1.1.3 - Thu, 03 Jul 2024 10:23:00 GMT
+
+- fixed inRange filtering to work in all timezones
+
 ## v1.1.2 - Sun, 30 Jun 2024 16:17:00 GMT
 
 - fixed isJustDate() usage

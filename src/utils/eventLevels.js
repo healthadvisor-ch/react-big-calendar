@@ -1,5 +1,5 @@
 import findIndex from 'lodash/findIndex'
-import { startOf, lte, neq, gt, gte, ceil, diff } from './dates'
+import { startOf, ceil, diff } from './dates'
 
 export function endOfRange({ dateRange, unit = 'day', localizer }) {
   return {
@@ -66,13 +66,11 @@ export function inRange(e, start, end, accessors) {
   let eStart = startOf(accessors.start(e), 'day')
   let eEnd = accessors.end(e)
 
-  let startsBeforeEnd = lte(eStart, end, 'day')
-  // when the event is zero duration we need to handle a bit differently
-  let endsAfterStart = neq(eStart, eEnd, 'minutes')
-    ? gt(eEnd, start, 'minutes')
-    : gte(eEnd, start, 'minutes')
-
-  return startsBeforeEnd && endsAfterStart
+  return (
+    (start.getTime() <= eStart.getTime() &&
+      end.getTime() >= eStart.getTime()) ||
+    (start.getTime() <= eEnd.getTime() && end.getTime() >= eEnd.getTime())
+  )
 }
 
 export function segsOverlap(seg, otherSegs) {
