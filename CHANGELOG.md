@@ -1,3 +1,7 @@
+## v1.1.6 - Fri, 19 Dec 2025 16:10:00 GMT
+
+- added `allDay` flag for selected slots in Month view
+
 ## v1.1.3 - Thu, 03 Jul 2024 10:23:00 GMT
 
 - fixed inRange filtering to work in all timezones

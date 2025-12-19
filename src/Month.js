@@ -342,6 +342,7 @@ class MonthView extends React.Component {
       slots,
       start: slots[0],
       end: slots[slots.length - 1],
+      allDay: true,
       action: slotInfo.action,
     })
   }
